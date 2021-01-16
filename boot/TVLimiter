@@ -1,0 +1,68 @@
+
+function Gravity {
+	// negavive magnitude to up vector is down.
+	return -(body:mu/(body:radius+ship:altitude)^2)*up:vector.
+}
+
+function Drag {
+	local M is ship:mass.
+	local a is ship:sensors:acc.
+	local grav is Gravity(). 
+	local resultant is M * ( a - grav ) - MAXTHRUST * THROTTLE * ship:facing:vector.
+	return resultant.
+}.
+
+function Loss {
+	parameter force.
+	local forceProjection is force * COS(VANG(force, RETROGRADE:VECTOR)).
+	return forceProjection:MAG.
+}
+
+function Confine{
+	parameter x.
+	return MAX(0,MIN(1, x)).
+}
+
+SET SHIP:CONTROL:PILOTMAINTHROTTLE TO 0.
+CORE:PART:GETMODULE("kOSProcessor"):DOEVENT("Open Terminal").
+WAIT 3.
+
+set thrustLevel to 1.
+set pitchLock to 5.
+
+LOCK  THROTTLE TO thrustLevel.
+LOCK STEERING TO HEADING(90, 90 - pitchLock).
+
+STAGE.
+WAIT 1.
+
+until ALT:APOAPSIS > 50000
+{
+	local dragLoss is Loss(Drag()).
+	local gravLoss is Loss(Gravity()*SHIP:MASS).
+	//local vtAcc is MAXTHRUST*THROTTLE/MASS.
+	
+	IF dragLoss > gravLoss {
+		set thrustLevel to Confine(thrustLevel - 0.01).
+	} ELSE {
+		set thrustLevel to Confine(thrustLevel + 0.01).
+	}
+	
+	local progradePitch is VANG(SRFPROGRADE:VECTOR, UP:VECTOR).
+	set pitchLock to MIN(90, progradePitch + MIN(5, (gravLoss/dragLoss - 1)*10)).
+	
+	CLEARSCREEN.
+	PRINT "drag  " + dragLoss.	
+	PRINT "grav  " + gravLoss.	
+	PRINT "accl  " + ship:sensors:acc:mag.	
+	PRINT "thrst " + MAXTHRUST.	
+	PRINT "trtl  " + THROTTLE.	
+
+	WAIT 0.
+}.
+
+set thrustLevel to 0.
+LOCK STEERING TO SRFPROGRADE.
+PRINT "Burn complete!".
+
+WAIT UNTIL SHIP:ALTITUDE > 70000.

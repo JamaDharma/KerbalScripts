@@ -1,0 +1,35 @@
+local accel is MAXTHRUST/MASS.
+local dt is 1.
+local br is body:radius.
+local bg is body:mu/body:radius^2.
+
+local function GravTStep{
+	parameter vx,vz, h.
+
+	if vx < 0 return h.
+	local spd is SQRT(vx*vx+vz*vz).
+	
+	local sk is accel/spd.
+	local dvx is vx*sk.
+	local dvz is bg - vx*vx/br - vz*sk.
+	
+	return GravTStep(vx-dvx*dt, vz+dvz*dt, h-vz*dt).
+}
+
+local function GravTSim{
+	parameter startSpeed, startAngle.
+	return GravTStep(startSpeed*COS(startAngle),startSpeed*SIN(startAngle),0).
+}
+
+function FallFrom{
+	parameter t.
+	
+	local p is POSITIONAT(ship, t).
+	local spdV is VELOCITYAT(ship,t):SURFACE.
+	local upV is (p - ship:BODY:POSITION):NORMALIZED.
+	
+	local ang is VANG(spdV,upV)-90.
+	
+	return GravTSim(spdV:MAG,ang).
+}
+

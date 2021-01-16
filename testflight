@@ -1,0 +1,30 @@
+function AutoStage {
+	set currentStage to 1.
+	set tresholdTime to 0.
+	WHEN (TIME:SECONDS > tresholdTime and MAXTHRUST = 0) THEN {
+		PRINT "Stage " + currentStage + " go!".
+		STAGE.
+		set currentStage to currentStage + 1.
+		set tresholdTime to TIME:SECONDS + 1.
+		PRESERVE.
+	}
+}
+
+//First, we'll clear the terminal screen to make it look nice
+CLEARSCREEN.
+
+//Next, we'll lock our throttle to 100%.
+LOCK THROTTLE TO 1.0.   // 1.0 is the max, 0.0 is idle.
+
+//This is the line we added
+LOCK STEERING TO UP.
+
+PRINT "Counting down:".
+FROM {local countdown is 5.} UNTIL countdown = 0 STEP {SET countdown to countdown - 1.} DO {
+    PRINT "..." + countdown.
+    WAIT 1. // pauses the script here for 1 second.
+}
+
+AutoStage().
+
+WAIT UNTIL SHIP:ALTITUDE > 70000.

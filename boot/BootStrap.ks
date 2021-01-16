@@ -1,0 +1,2 @@
+set CORE:BOOTFILENAME to "".
+RUNPATH("0:/Specific/"+CORE:PART:TAG).
