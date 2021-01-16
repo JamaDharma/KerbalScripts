@@ -2,8 +2,6 @@ RUNONCEPATH("0:/lib/Debug").
 RUNONCEPATH("0:/lib/Search/BinarySearch").
 RUNONCEPATH("0:/lib/Search/ManeuverSearch").
 
-local metricParam is (1/1000)^2.
-
 function PrintInfo{
 	parameter mainTime.
 	PRINT "Distance: " + Separation(mainTime).
@@ -28,7 +26,7 @@ function MinimalSeparationTime{
 function CheckRendezvousMetric{
 	parameter h, m, s.
 	local msTime is MinimalSeparationTime(h,m,s).
-	set metricParam to 1/1000.
+	SetTargetDistance(1000).
 	
 	PrintInfo(msTime).
 }
@@ -36,7 +34,7 @@ function CheckRendezvousMetric{
 function FinalApproach{
 	parameter h, m, s.
 	local msTime is MinimalSeparationTime(h,m,s).
-	set metricParam to 1/10.
+	SetTargetDistance(10).
 	
 	PrintInfo(msTime).
 	
@@ -54,7 +52,7 @@ function FinalApproach{
 function MakeRendezvous{
 	parameter h, m, s.
 	local msTime is MinimalSeparationTime(h,m,s).
-	set metricParam to 1/1000.
+	SetTargetDistance(1000).
 	
 	PrintInfo(msTime).
 	
@@ -72,8 +70,10 @@ function MakeRendezvous{
 function MakeEncounter{
 	parameter h, m, s.
 	local msTime is MinimalSeparationTime(h,m,s).
-	
-	set metricParam to (1/1000000)^2.
+	SetTargetDistance(1000*1000).
+
+	PrintInfo(msTime).
+
 	local search is MakeMSearcher(Metric@,1000,msTime).
 	
 	function Metric{
@@ -136,7 +136,16 @@ function DVTotal{
 	return RelativeSpeed(t)+NEXTNODE:DELTAV:MAG.
 }
 
+
+local metricParam is 1.
+local minDist is 0.
+function SetTargetDistance{
+	parameter dst.
+	set minDist to dst.
+	set metricParam to 1/dst.
+}
 function TargetMetric{
 	parameter t.
-	return SqSep(t)*metricParam + DVTotal(t).
+	local sepSq is MAX(0,Separation(t) - minDist)^2.
+	return sepSq*metricParam + DVTotal(t).
 }
