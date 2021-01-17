@@ -1,45 +1,46 @@
-local binareSearchInputList to LIST(
-	"minimum stepsize",	
-	{
+local binareSearchInputList to lexicon(
+	"MinimumStep",0.1,
+	"Changer",	{
 		parameter dX.
 		PRINT "change value of parameter by dX".
 	},
-	"default stepsize",
-	{return "target metric".}
+	"DefaultStep", 1
 ).
 
 local function TryStep {
+	parameter metric.
 	parameter lst.
 	parameter dX.
 	parameter oldM.
 	parameter upstep.
 	
-	set newM to lst[3]().
+	set newM to metric().
 	IF  newM < oldM { 
 		if upstep { set newstep to dX*2.	} 
 			else { set newstep to dX/2. }
-		BSearch(lst, newstep, newM, upstep).
+		BSearch(metric, lst, newstep, newM, upstep).
 		return true.
 	}
 	return false.
 }
 
 function BSearch{
-	parameter lst.
-	parameter dX is lst[2].
-	parameter metric is lst[3]().
+	parameter metric.
+	parameter context.
+	parameter dX is context:DefaultStep.
 	parameter upstep is true.
 	
-	local changer is lst[1].
-	IF ABS(dX) < lst[0] { return. }
+	local startingMetric is metric().
+	local changer is context:Changer.
+	IF ABS(dX) < context:MinimumStep { return. }
 	
 	changer:call(dX).//step
-	if TryStep(lst, dX, metric, upstep) { return. }
+	if TryStep(metric, context, dX, startingMetric, upstep) { return. }
  	
 	changer:call(-dX*2).//*2 to compensate prev attempt
-	if TryStep(lst, dX, metric, upstep) { return. }
+	if TryStep(metric, context, dX, startingMetric, upstep) { return. }
 	
-	if upstep { set lst[2] to dX/2+lst[0]. }
+	if upstep { set context:DefaultStep to dX/2+context:MinimumStep. }//WTF?!!!
 	changer:call(dX).//failed to improve, no steps
-	BSearch(lst, dX/2, metric, false).
+	BSearch(metric, context, dX/2, startingMetric, false).
 }
