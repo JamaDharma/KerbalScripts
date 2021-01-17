@@ -16,7 +16,7 @@ FUNCTION ground_track {  //returns the geocoordinates of the ship at a given tim
 
 function GeopositionAt{
 	PARAMETER obj, objTime.
-	return ground_track(objTime, positionAt(obj, objTime)).
+	return ground_track(objTime:SECONDS, positionAt(obj, objTime)).
 }
 
 function AltitudeAt{

@@ -38,7 +38,7 @@ function FinalApproach{
 	
 	PrintInfo(msTime).
 	
-	local search is MakeMSearcher(Metric@,7,msTime).
+	local search is MakeMSearcher(Metric@,1,msTime).
 	
 	function Metric{
 		return TargetMetric(search:TrgTime()).
@@ -56,7 +56,7 @@ function MakeRendezvous{
 	
 	PrintInfo(msTime).
 	
-	local search is MakeMSearcher(Metric@,7,msTime).
+	local search is MakeMSearcher(Metric@,1,msTime).
 	
 	function Metric{
 		return TargetMetric(search:TrgTime()).
