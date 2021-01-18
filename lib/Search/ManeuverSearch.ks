@@ -36,45 +36,36 @@ function MakeMSearcher {
 	local minTimeStep is timeScale/10.
 	local minBurnStep is 0.1.
 	local componentList is LIST(
-		LIST(
+		MakeGDComponent(
 			minTimeStep,
-			{
+			{	
 				parameter dT.
 				set branchTime to branchTime+dT*timeScale.
-			},
-			0
-		),
-		LIST(
+			}
+		), MakeGDComponent(
 			minTimeStep,
 			{
 				parameter dX.
 				set NEXTNODE:ETA to NEXTNODE:ETA+dX*timeScale.
-			},
-			0
-		),
- 		LIST(
+			}
+		),  MakeGDComponent(
 			minBurnStep,
 			{
 				parameter dX.
 				set NEXTNODE:PROGRADE to NEXTNODE:PROGRADE+dX.
-			},
-			0
-		),
-		LIST(
+			}
+		),  MakeGDComponent(
 			minBurnStep,
 			{
 				parameter dX.
 				set NEXTNODE:RADIALOUT to NEXTNODE:RADIALOUT+dX.
-			},
-			0
-		),
-		LIST(
+			}
+		),MakeGDComponent(
 			minBurnStep,
 			{
 				parameter dX.
 				set NEXTNODE:NORMAL to NEXTNODE:NORMAL+dX.
-			},
-			0
+			}
 		)
 	).
 	
@@ -131,20 +122,19 @@ function MakeProgradeSearcher {
 	
 	local minTimeStep is timeScale/10.
 	local minBurnStep is 0.1.
-	local componentList is LIST(	LIST(
+	local componentList is LIST(	
+		MakeGDComponent(
 			minTimeStep,
 			{
 				parameter dT.
 				set branchTime to branchTime+dT*timeScale.
-			},
-			0
-		), LIST(
+			}
+		), MakeGDComponent(
 			minBurnStep,
 			{
 				parameter dX.
 				set NEXTNODE:PROGRADE to NEXTNODE:PROGRADE+dX.
-			},
-			0
+			}
 		)
 	).
 	

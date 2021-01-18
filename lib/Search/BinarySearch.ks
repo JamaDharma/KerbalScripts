@@ -1,12 +1,3 @@
-local binareSearchInputList to lexicon(
-	"MinimumStep",0.1,
-	"Changer",	{
-		parameter dX.
-		PRINT "change value of parameter by dX".
-	},
-	"DefaultStep", 1
-).
-
 local function TryStep {
 	parameter metric.
 	parameter lst.
@@ -24,13 +15,30 @@ local function TryStep {
 	return false.
 }
 
+local binareSearchInputList to lexicon(
+	"MinimumStep",0.1,
+	"Changer",	{
+		parameter dX.
+		PRINT "change value of parameter by dX".
+	},
+	"DefaultStep", 1
+).
+function MakeBSComponent{
+	parameter defStep, minStep, changer.
+	return lexicon(
+		"DefaultStep", defStep,
+		"MinimumStep", minStep,
+		"Changer", changer
+	).
+}
+
 function BSearch{
 	parameter metric.
 	parameter context.
 	parameter dX is context:DefaultStep.
+	parameter startingMetric is metric().
 	parameter upstep is true.
-	
-	local startingMetric is metric().
+
 	local changer is context:Changer.
 	IF ABS(dX) < context:MinimumStep { return. }
 	

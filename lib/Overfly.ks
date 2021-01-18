@@ -4,30 +4,50 @@ RUNONCEPATH("0:/lib/SurfaceAt").
 RUNONCEPATH("0:/lib/Search/BinarySearch").
 RUNONCEPATH("0:/lib/Search/ManeuverSearch").
 
+local function LNGDiff{
+	parameter gpO, gpG.
+	local lDiff is gpO:LNG - gpG:LNG.
+	if lDiff < 0 set lDiff to lDiff + 180.
+	if lDiff > 180 set lDiff to lDiff - 180.
+	return lDiff.
+}
+
 local function SeparationV{
 	parameter tT,tGP.
 	return GeopositionAt(ship, tT):POSITION - tGP:POSITION.
 }
 
+local function NormalizeGP{
+	parameter gp.
+	return (gp:POSITION - BODY:POSITION):NORMALIZED*BODY:RADIUS.
+}
+local function SeparationNrm{
+	parameter tT,tGP.
+	return NormalizeGP(GeopositionAt(ship, tT)) - NormalizeGP(tGP).
+}
+
+local function CoordinateS{
+	parameter tT,tGP.
+	local shipGP is GeopositionAt(ship, tT).
+	return (shipGP:LAT - tGP:LAT)^2+(shipGP:LNG - tGP:LNG)^2.
+}
+
 local function MinimalSeparationTime{
 	parameter minSepTime, tGP.
 
-	BSearch(list(
-		0.1,
-		{parameter dT. set minSepTime to minSepTime + dT.},
-		1,
-		{ return SeparationV(minSepTime, tGP):SQRMAGNITUDE.})).
-	
+	BSearch(
+		{ return SeparationNrm(minSepTime, tGP):SQRMAGNITUDE.},
+		MakeBSComponent( 1, 0.1, {parameter dT. set minSepTime to minSepTime + dT.})
+	).
+
 	return minSepTime.
 }
 
 local function OrbitOver{
 	parameter tGP.
-	local tLong is tGP:LNG.
-	local shipLong is ship:GEOPOSITION:LNG.
-	local lDiff is shipLong - tLong.
-	if lDiff < 0 set lDiff to lDiff + 180.
-	if lDiff > 180 set lDiff to lDiff - 180.
+
+	local lDiff is LNGDiff(ship:GEOPOSITION,tGP).
+
 	return BODY:ROTATIONPERIOD*lDiff/360.
 }
 local function OrbitOverAfter{
@@ -50,12 +70,17 @@ function ToTime{
 local function FindFlyOver{
 	parameter timeOver, tGP.
 	
-	local search is MakeProgradeSearcher(Metric@,1,timeOver).
+	set timeOver to MinimalSeparationTime(timeOver, tGP).
+	
+	PRINT "Distance: " + SeparationV(timeOver,tGP):MAG.
+	PRINT "Time: " + ToTime(timeOver).
+	
+	local search is MakeProgradeSearcher(Metric@,100,timeOver).
 	
 	function Metric{
-		return SeparationV(search:TrgTime(), tGP):SQRMAGNITUDE+ABS(NEXTNODE:PROGRADE).
+		return SeparationNrm(search:TrgTime(), tGP):SQRMAGNITUDE+ABS(NEXTNODE:PROGRADE).
 	}
-	search:GO(1).
+	search:GO(0.1).
 	
 	PRINT "Distance: " + SeparationV(search:TrgTime(),tGP):MAG.
 	PRINT "Time: " + ToTime(search:TrgTime()).

@@ -15,14 +15,14 @@ function Branch{
 
 	set branchTime to mainTime + myV[0].
 	set branchSpd to mainSpd + myV[1].
-	log "t: "+branchTime+" s: "+mainSpd to "gdtst.txt".
+	//log "t: "+branchTime+" s: "+mainSpd to "gdtst.txt".
 }
 function Commit{
 	set mainTime to branchTime.
 	set mainSpd to branchSpd.
-	log "result vector t: "+mainTime+" s: "+mainSpd to "gdtst.txt".
-	print mainTime.
-	print mainSpd.
+	//log "result vector t: "+mainTime+" s: "+mainSpd to "gdtst.txt".
+	NPrint("mainTime",mainTime).	
+	NPrint("mainSpd",mainSpd).	
 }
 function Revert{
 	set branchTime to mainTime.
@@ -32,20 +32,20 @@ function Revert{
 local context is list(
 	1/4,
 	mtric@,
-	list(LIST(
+	list(MakeGDComponent(
 			0.1,
 			{
-				parameter dT.			
+				parameter dT.
+				NPrint("dT",dT).
 				set branchTime to branchTime+dT.
-			},
-			0
-		),LIST(
+			}
+		),MakeGDComponent(
 			0.1,
 			{
-				parameter dT.			
-				set branchSpd to branchSpd+dT.
-			},
-			0
+				parameter dS.
+				NPrint("dS",dS).				
+				set branchSpd to branchSpd+dS.
+			}
 		)),
 	Branch@, Commit@, Revert@).
 

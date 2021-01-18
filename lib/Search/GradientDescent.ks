@@ -3,7 +3,7 @@ local function DecayV{
 	parameter oldV, myV.
 	local cnt is 0.
 	until cnt = myv:LENGTH{
-		set oldV[cnt] to (oldV[cnt]*15+myV[cnt])/16.
+		set oldV[cnt] to (oldV[cnt]*7+myV[cnt])/8.
 		set cnt to cnt + 1.
 	}
 }
@@ -29,65 +29,45 @@ local function SetVM{
 
 local epsilon is 1/1000000.
 local downscale is 1/8.
-local function UpdateGradient{
+local function CalculateGradient{
 	parameter metric, oldMetric, cmp.
-	local changer is cmp[1].
-	local sStep is cmp[0]*downscale.
-	
-	local function CheckStep{
-		parameter stepSize.
-		if stepSize < epsilon {
-			set cmp[0] to cmp[0]*1024.
-			set cmp[2] to 0.
-			return false.
-		}
-		return true.
-	}
-	
-	if not CheckStep(sStep) return.
-	
-	changer(sStep).
-	
-	function TryUpdateGradient{
-		local sampleStep is cmp[0]*downscale.
+	local changer is cmp:Changer.
+
+	function TryCalculateGradient{
+		parameter sampleStep.
 		
-		if not CheckStep(sampleStep) {
-			changer(sampleStep).
-			return.
+		if sampleStep < epsilon {
+			changer(-sampleStep).
+			return 0.
 		}
 		
 		local newMetric is metric().
 		local grd1 is (oldMetric-newMetric)/sampleStep.
 		if ABS(grd1) < epsilon {
-			set cmp[2] to 0.
-			changer(sampleStep).
-			return.
+			changer(-sampleStep).
+			return 0.
 		}
-		//NPrint("grd1",grd1).
-		//NPrint("newMetric",newMetric).
+
 		changer(-2*sampleStep).
 		set newMetric to metric().
 		local grd2 is -(oldMetric-newMetric)/sampleStep.
 		
-
-		//NPrint("grd2",grd2).
-		//NPrint("newMetric",newMetric).
-		//WaitKey().
-		if ABS((grd1-grd2)/grd1) > 0.5 {
-			set cmp[0] to sampleStep.
+		if ABS(grd1-grd2)/MAX(ABS(grd1),ABS(grd2)) > 0.5 {
 			changer(sampleStep+sampleStep*downscale).
-			TryUpdateGradient().
+			return TryCalculateGradient(sampleStep*downscale).
 		} else {
-			set cmp[2] to (grd1+grd2)/2.
 			changer(sampleStep).
+			return (grd1+grd2)/2.
 		}
 	}
 
-	TryUpdateGradient().
+	local sStep is cmp:MinimumStep*downscale.
+	changer(sStep).
+	return TryCalculateGradient(sStep).
 }
 
 local idVector is list(0,0,0,0,0,0,0,0,0,0,0,0,0).
-local function UpdateGradients{
+local function CalculateGradients{
 	parameter context.
 	local metric is context[1].
 	local cmps is context[2].
@@ -95,20 +75,21 @@ local function UpdateGradients{
 	
 	branch(idVector).
 	local baseMetric is metric().
-	NPrint("baseMetric",baseMetric,10).
+	local result is list().
 	for cmp in cmps {
-		UpdateGradient(metric,baseMetric,cmp).
+		result:ADD(CalculateGradient(metric,baseMetric,cmp)).
 	}
+	return result.
 }
 
 local function MakeStep{
-	parameter oldMetric, myV, context, upstep is false.
+	parameter oldMetric, myVStep, myV, context, upstep is false.
 	local metric is context[1].
 	local branch is context[3].
 	local commit is context[4].
 	local revert is context[5].
 	
-	if context[0] < 0.00001 {
+	if myVStep < 0.00001 {
 		revert().
 		return false.
 	}
@@ -116,21 +97,18 @@ local function MakeStep{
 	branch(myV).
 	local newMetric is metric().
 	IF  newMetric < oldMetric { 
+		if upstep { 
+			MultV(2, myV).
+			MakeStep(oldMetric, myVStep*2, myV, context, true).
+			return true.
+		} 
+		set context[0] to myVStep.
 		commit().
-	function prcom{
-		print "---------commit----------".
-		print myV.
-		print "-------------------------".
-		WaitKey().
-	}
-	//prcom().
-		if upstep { set context[0] to context[0]*2. } 
 		return true.
 	}
 	
-	set context[0] to context[0]*0.5.
 	MultV(0.5, myV).
-	return MakeStep(oldMetric, myV, context, false).
+	return MakeStep(oldMetric, myVStep/2, myV, context, false).
 }
 
 local function GD{
@@ -140,33 +118,42 @@ local function GD{
 	local metric is context[1].
 	local cmps is context[2].
 	
-	if stepSize < 0.0001 {
-		print "Stepsize too small".
-		return false.
-	}
-	
 	local oldMetric is metric().
 	
-	UpdateGradients(context).
-	local myV is list().
-	for cmp in cmps{
-		myV:ADD(cmp[2]).
-	}
+	local myV is CalculateGradients(context).
 	DecayV(oldV,myV).
 	
+	NPrint("metric",oldMetric).
+	print myV.
+	
 	if not SetVM(stepSize, myV) return false.
-
-	local oldc is oldV:COPY.
-	SetVM(stepSize, oldc).
-	if MakeStep(oldMetric,oldc,context){
-		set context[0] to stepSize.
+	
+	local oldC is oldV:COPY.
+	SetVM(stepSize, oldC).
+	if MakeStep(oldMetric,stepSize,oldC,context,true){
+		print "momentum".
 		return true.	
 	}
 	
-	return MakeStep(oldMetric,myV,context).
+	return MakeStep(oldMetric,stepSize,myV,context).
 	
 }
 
+local vectorComponent to lexicon(
+	"MinimumStep",0.1,
+	"Changer",	{
+		parameter dX.
+		PRINT "change value of parameter by dX".
+	},
+	"DefaultStep", 1
+).
+function MakeGDComponent{
+	parameter minStep, changer.
+	return lexicon(
+		"MinimumStep", minStep,
+		"Changer", changer
+	).
+}
 function GradientDescent{
 	parameter context.
 	local momentum is idVector:COPY.
