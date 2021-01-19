@@ -26,19 +26,6 @@ function DistToStart{
 	return (runwayStart:POSITION - ship:POSITION):MAG.
 }
 
-function AngToStartOld{
-	local rsp is runwayStart:POSITION.
-	local rep is runwayEnd:POSITION.
-	local rV is rep-rsp.
-	local toStart is rsp-ship:POSITION.
-	local upV is UP:VECTOR.
-	local flatTS is VXCL(upV,toStart):NORMALIZED.
-	local flatRW is VXCL(upV,rV):NORMALIZED.
-	local angle is VANG(flatTS,flatRW).
-	if BODY:NORTH:VECTOR*(flatTS-flatRW) > 0 return angle.
-	else return -angle.
-}
-
 function AngToStart{
 	local rsp is runwayStart:POSITION.
 	local rep is runwayEnd:POSITION.
@@ -51,9 +38,11 @@ function AngToStart{
 	return angle*CONSTANT:RadToDeg.
 }
 
+SET pidVS TO PIDLOOP(6, 3, 3, -10, 10).
 function VSpeedControl{
 	parameter tgt.
-	set pitchLock to (tgt - VERTICALSPEED)/9 - 3.
+	set pidVS:SETPOINT to tgt.
+	set pitchLock to pidVS:UPDATE(TIME:SECONDS, VERTICALSPEED).
 }
 
 local compasLock is 90.
@@ -95,8 +84,8 @@ until DistToStart() < 500 {
 	PrintInfo().
 	set compasLock to runwayStart:HEADING.
 	//set pitchLock to PointPitch(runwayStart:POSITION).
-	VSpeedControl(-ALT:RADAR/3).
-	if AIRSPEED - 100 > (DistToStart() - 500)/25 BRAKES ON.
+	VSpeedControl(-(ALT:RADAR-15)/3).
+	if AIRSPEED - 80 > (DistToStart() - 500)/25 BRAKES ON.
 	else BRAKES OFF.
 	WAIT 0.
 }
@@ -104,9 +93,14 @@ until DistToStart() < 500 {
 set compasLock to runwayEnd:HEADING.
 BRAKES ON.
 GEAR ON.
-until ALT:RADAR < 10 {
+until DistToStart() < 50 {
 	PrintInfo().
-	VSpeedControl(-ALT:RADAR/10).
+	VSpeedControl(-(ALT:RADAR-5)/10).
+	WAIT 0.
+}
+until ALT:RADAR < 1 {
+	PrintInfo().
+	VSpeedControl(-(ALT:RADAR+4)/10).
 	WAIT 0.
 }
 
