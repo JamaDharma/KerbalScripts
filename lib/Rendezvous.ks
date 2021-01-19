@@ -14,11 +14,10 @@ function MinimalSeparationTime{
 	parameter h, m, s.
 	local minSepTime is time + h*3600 + m*60 + s.
 	
-	BSearch(list(
-		0.1,
-		{parameter dT. set minSepTime to minSepTime + dT.},
-		1,
-		{ return Separation(minSepTime).})).
+	BSearch(
+		{ return Separation(minSepTime).},
+		MakeBSComponent( 1, 0.1, {parameter dT. set minSepTime to minSepTime + dT.})
+	).
 	
 	return minSepTime.
 }

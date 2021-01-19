@@ -33,3 +33,8 @@ function HorVelAt{
 	local upV is (p - ship:BODY:POSITION).
 	return list(VXCL(upV,vel:ORBIT),VXCL(upV,vel:SURFACE)).
 }
+
+function NormalizeGP{
+	parameter gp.
+	return (gp:POSITION - BODY:POSITION):NORMALIZED*BODY:RADIUS.
+}

@@ -6,39 +6,43 @@ RUNONCEPATH("0:/lib/GravityTurnSimulation").
 
 SET SHIP:CONTROL:PILOTMAINTHROTTLE TO 0.
 
-local tgt is GetTargetGeo().
-local targetTime is time:SECONDS+30.
 
+local function SeparationNrm{
+	parameter tT,tGP.
+	return NormalizeGP(GeopositionAt(ship, tT)) - NormalizeGP(tGP).
+}
 local function TimeOnTarget{
-	BSearch(list(
-		0.1,
-		{ parameter dX. set targetTime to targetTime+dX. },
-		1,
-		{ return (GeopositionAt(ship,targetTime):POSITION-tgt:POSITION):MAG. }
-	)).
+	parameter tT, tGP.
+
+	BSearch(
+		{ return SeparationNrm(tT, tGP):SQRMAGNITUDE.},
+		MakeBSComponent( 1, 0.1, {parameter dT. set tT to tT + dT.})
+	).
+
+	return tT.
 }
 
-if HASNODE REMOVE NEXTNODE.
 
-TimeOnTarget().
+local tgt is GetTargetGeo().
+if HASNODE REMOVE NEXTNODE.
+local targetTime is TimeOnTarget(time+300,tgt).
+
 
 local inclCorrTime is targetTime - ship:ORBIT:PERIOD/4.
 if inclCorrTime > time:SECONDS {
 	PRINT "Trying to correct inclination".
-	local myNode is NODE(inclCorrTime,0,0,0).
+	local myNode is NODE(inclCorrTime:SECONDS,0,0,0).
 	ADD(myNode).
-	BSearch(list(
-		1,
-		{ parameter dX. set myNode:NORMAL to myNode:NORMAL+dX. },
-		0.01,
-		{ return (GeopositionAt(ship,targetTime):POSITION-tgt:POSITION):MAG. }
-	)).
+	BSearch(
+		{ return SeparationNrm(targetTime, tgt):SQRMAGNITUDE.},
+		MakeBSComponent( 1, 0.1, { parameter dX. set myNode:NORMAL to myNode:NORMAL+dX. })
+	).
 	run Burn.
 	REMOVE(myNode).
 }
 
 
-TimeOnTarget().//orbit changed
+set targetTime to TimeOnTarget(targetTime,tgt).//orbit changed
 
 local velAtTgt is HorVelAt(targetTime)[1]:MAG.
 local burnTime is targetTime-velAtTgt*MASS/MAXTHRUST/2.
@@ -53,21 +57,22 @@ NPrint("z - drop: ",info[2]).
 
 
 local burnStart is targetTime - info[1]/GROUNDSPEED.
-WARPTO(burnStart - 30).
-
-WAIT UNTIL burnStart < time:SECONDS+30.
-
-UNTIL burnStart < time:SECONDS+10 {
-	set burnStart to targetTime - info[1]/GROUNDSPEED.
-	NPrint("Seconds to burn", burnStart-time:SECONDS,0).
-	WAIT 1.
-}
+WARPTO(burnStart:SECONDS - 90).
 
 SAS ON.
 WAIT 0.5.
 set SASMODE to "RETROGRADE".
 set NAVMODE to "SURFACE".
-UNTIL burnStart < time:SECONDS {
+
+WAIT UNTIL burnStart < time+30.
+
+UNTIL burnStart < time+10 {
+	set burnStart to targetTime - info[1]/GROUNDSPEED.
+	NPrint("Seconds to burn", (burnStart-time):SECONDS,0).
+	WAIT 1.
+}
+
+UNTIL burnStart < time {
 	set burnStart to targetTime - info[1]/GROUNDSPEED.
 	WAIT 0.1.
 }

@@ -19,3 +19,8 @@ function StageLfOx{
 function LfOxFactor{
 	return constant:g0*ln(SHIP:MASS/(SHIP:MASS-StageLfOx())).
 }
+
+function StageDeltaV{
+	parameter pressure is 0.
+	return StageIsp(0)*LfOxFactor().
+}

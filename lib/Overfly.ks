@@ -17,19 +17,9 @@ local function SeparationV{
 	return GeopositionAt(ship, tT):POSITION - tGP:POSITION.
 }
 
-local function NormalizeGP{
-	parameter gp.
-	return (gp:POSITION - BODY:POSITION):NORMALIZED*BODY:RADIUS.
-}
 local function SeparationNrm{
 	parameter tT,tGP.
 	return NormalizeGP(GeopositionAt(ship, tT)) - NormalizeGP(tGP).
-}
-
-local function CoordinateS{
-	parameter tT,tGP.
-	local shipGP is GeopositionAt(ship, tT).
-	return (shipGP:LAT - tGP:LAT)^2+(shipGP:LNG - tGP:LNG)^2.
 }
 
 local function MinimalSeparationTime{
