@@ -88,6 +88,75 @@ function MakeMSearcher {
 	return this.
 }
 
+function MakeBurnSearcher {
+	parameter metric.
+
+	local mainNode is NEXTNODE.
+	local branchNode is mainNode.
+
+	function Branch{
+		parameter myV.
+
+		set branchNode to NODE(
+			time:SECONDS+mainNode:ETA,
+			mainNode:RADIALOUT+myV[1],
+			mainNode:NORMAL+myV[2],
+			mainNode:PROGRADE+myV[0]).
+		REMOVE NEXTNODE.
+		ADD branchNode.
+		wait 0.
+	}
+	function Commit{
+		set mainNode to branchNode.
+	}
+	function Revert{
+		set branchNode to mainNode.
+		REMOVE NEXTNODE.
+		ADD mainNode.
+		wait 0.
+	}
+	
+	local minBurnStep is 0.01.
+	local componentList is LIST(
+		MakeGDComponent(
+			minBurnStep,
+			{
+				parameter dX.
+				set NEXTNODE:PROGRADE to NEXTNODE:PROGRADE+dX.
+			}
+		),  MakeGDComponent(
+			minBurnStep,
+			{
+				parameter dX.
+				set NEXTNODE:RADIALOUT to NEXTNODE:RADIALOUT+dX.
+			}
+		),MakeGDComponent(
+			minBurnStep,
+			{
+				parameter dX.
+				set NEXTNODE:NORMAL to NEXTNODE:NORMAL+dX.
+			}
+		)
+	).
+	
+	function RunSearch{
+		parameter stepsize.
+		local context is list(
+			stepsize,
+			metric,
+			componentList,
+			Branch@, Commit@, Revert@).
+		
+		GradientDescent(context).
+	}
+	
+	local this is lexicon(
+		"GO", RunSearch@
+	).
+	
+	return this.
+}
+
 function MakeProgradeSearcher {
 	parameter metric, timeScale, mainTime.
 
