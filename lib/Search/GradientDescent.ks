@@ -3,7 +3,7 @@ local function DecayV{
 	parameter oldV, myV.
 	local cnt is 0.
 	until cnt = myv:LENGTH{
-		set oldV[cnt] to (oldV[cnt]*7+myV[cnt])/8.
+		set oldV[cnt] to (oldV[cnt]*15+myV[cnt])/16.
 		set cnt to cnt + 1.
 	}
 }
@@ -157,5 +157,5 @@ function MakeGDComponent{
 function GradientDescent{
 	parameter context.
 	local momentum is idVector:COPY.
-	UNTIL not GD(context,momentum).
+	UNTIL not GD(context,momentum) or TERMINAL:INPUT:HASCHAR().
 }

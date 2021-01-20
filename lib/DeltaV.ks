@@ -22,5 +22,5 @@ function LfOxFactor{
 
 function StageDeltaV{
 	parameter pressure is 0.
-	return StageIsp(0)*LfOxFactor().
+	return StageIsp(pressure)*LfOxFactor().
 }

@@ -66,6 +66,7 @@ function ExecuteBurn{
 	set thrustLevel to 1.
 	UNTIL GetBurnTime(burn) < 1 {
 		set steeringLock to burn:DELTAV.
+		WAIT 0.
 	}
 	
 	UNTIL VANG(burn:DELTAV, burnDirection) > 80 {
