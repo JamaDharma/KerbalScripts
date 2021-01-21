@@ -17,10 +17,36 @@ function StageLfOx{
 }
 
 function LfOxFactor{
-	return constant:g0*ln(SHIP:MASS/(SHIP:MASS-StageLfOx())).
+	return ln(SHIP:MASS/(SHIP:MASS-StageLfOx())).
 }
 
 function StageDeltaV{
 	parameter pressure is 0.
-	return StageIsp(pressure)*LfOxFactor().
+	return StageCalculator(pressure):StageDeltaV().
+}
+
+function BurnTime{
+	parameter dV.
+	return StageCalculator():BurnTime(dv).
+}
+
+function StageCalculator{
+	parameter pressure is 0.
+	local ispP is StageIsp(pressure).
+	local exV is constant:g0*ispP.
+	local accel is MAXTHRUST/MASS.
+	
+	function BurnTime{
+		parameter dV.
+		return exV/accel * (1 - constant:E^(-dV/exV)).
+	}
+	
+	function StageDeltaV{
+		return exV*LfOxFactor().
+	}
+	
+	return lexicon(
+		"StageDeltaV",StageDeltaV@,
+		"BurnTime", BurnTime@
+	).
 }
