@@ -9,6 +9,11 @@ function GetUpVec {
 	return (p1:POSITION - p1:BODY:POSITION):NORMALIZED.
 }
 
+function NormalizeGP{
+	parameter gp.
+	return (gp:POSITION - BODY:POSITION):NORMALIZED*BODY:RADIUS.
+}
+
 function AdjDirByRoll{
 	PARAMETER dir.
 	PARAMETER rollVec.
