@@ -1,41 +1,53 @@
 HUDTEXT("Booster boot script waiting!", 5, 2, 50, blue, true).
 WAIT UNTIL SHIP:SHIPNAME = "Booster".
-set thrustLevel to 0.
 WAIT 3.
 
 RUNONCEPATH("0:/lib/Defaults").
 RUNONCEPATH("0:/lib/DeltaV").
 
-function StageDeltaV{
-	return shipIsp*LfOxFactor().
+function BurnPossible{
+	return dvCalc:StageDeltaV() > 450 and SHIP:ALTITUDE > 10000.
 }
 
-function BurnPossible{
-	return StageDeltaV() > 650 and SHIP:ALTITUDE > 10000.
+function ChangeSettings{
+	local stm is STEERINGMANAGER:MAXSTOPPINGTIME.
+	local pkd is STEERINGMANAGER:PITCHPID:KD.
+	local rkd is STEERINGMANAGER:PITCHPID:KD.
+	
+	set STEERINGMANAGER:MAXSTOPPINGTIME to 50.
+	set STEERINGMANAGER:PITCHPID:KD to 10.
+	set STEERINGMANAGER:YAWPID:KD to 10.
+	
+	return {
+		set STEERINGMANAGER:MAXSTOPPINGTIME to stm.
+		set STEERINGMANAGER:PITCHPID:KD to pkd.
+		set STEERINGMANAGER:YAWPID:KD to rkd.
+	}.
 }
 
 function BurnControl{
 	RCS ON.
-
-	LOCK STEERING TO SRFRETROGRADE.
-
-	UNTIL (not BurnPossible()) {
-		if VANG(SRFRETROGRADE:VECTOR, SHIP:FACING:VECTOR) < 5 {
-			set thrustLevel to 1.	
-		} else {
-			set thrustLevel to 0.
-		}	
-		WAIT 0.1.
-	}
+	local revert is ChangeSettings().
+	local steeringLock is HEADING(kspGP:HEADING,0).
+	LOCK STEERING TO steeringLock.
 	
+	WAIT UNTIL VANG(steeringLock:VECTOR, SHIP:FACING:VECTOR) < 5.
+	revert().
+	
+	UNTIL (not BurnPossible()) {
+		set steeringLock to HEADING(kspGP:HEADING,0).
+		set thrustLevel to thrustLevel+0.03.
+		WAIT 0.
+	}
+
 	RCS OFF.
 
 	UNLOCK STEERING.
 }
 
-set shipIsp to StageIsp(1).
-PRINT "ISP: "+shipIsp.
-PRINT "DV: "+StageDeltaV().
+local kspGP is WAYPOINT("KSC"):GEOPOSITION.
+local dvCalc is StageCalculator(1).
+PRINT "DV: "+dvCalc:StageDeltaV().
 PRINT "Mass: "+SHIP:MASS.
 PRINT "FuelMass: "+StageLfOx().
 
