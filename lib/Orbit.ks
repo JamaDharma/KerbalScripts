@@ -1,4 +1,5 @@
 RUNONCEPATH("0:/lib/Defaults").
+RUNONCEPATH("0:/lib/BurnExecutor").
 
 function SetPeriapsis{
 	parameter desiredPeriapsis.
@@ -37,57 +38,10 @@ function SetApoapsis{
 	REMOVE maneuverNode.
 }
 
-function GetBurnTime{
-	parameter burn.
-	RETURN burn:DELTAV:MAG*MASS/MAXTHRUST.
-}
-
-function PrepareForBurn{
-	parameter burn.
-	local burnTime is GetBurnTime(burn).
-
-	LOCK STEERING TO burn:DELTAV.
-
-	HUDTEXT(ROUND(burn:ETA - burnTime/2) + "s to maneuver. Burn time " + ROUND(burnTime) + "s.", 5, 2, 50, green, true).
-	WAIT UNTIL VANG(burn:DELTAV, SHIP:FACING:VECTOR) < 1.
-	
-	UNLOCK STEERING.
-	
-	HUDTEXT("Timewarp.", 5, 2, 50, blue, true).
-	WARPTO(TIME:SECONDS + burn:ETA - burnTime/2 - 30).
-}
-
 function ExecuteBurn{
 	parameter burn.
 	
-	PrepareForBurn(burn).
-	
-	local burnTime is GetBurnTime(burn).	
-	local burnDirection is burn:DELTAV.
-	local steeringLock is burn:DELTAV.
-	
-	LOCK STEERING TO steeringLock.
-	
-	UNTIL burn:ETA < burnTime/2{
-		set steeringLock to burn:DELTAV.
-		WAIT 0.
-	}
-	
-	HUDTEXT("Burn!", 5, 2, 50, red, true).
-	
-	set thrustLevel to 1.
-	UNTIL GetBurnTime(burn) < 1 {
-		set steeringLock to burn:DELTAV.
-		WAIT 0.
-	}
-	
-	UNTIL VANG(burn:DELTAV, burnDirection) > 80 {
-		set thrustLevel to MIN(GetBurnTime(burn), 1).
-		WAIT 0.
-	}
-
-	set thrustLevel to 0.
-	UNLOCK STEERING.
+	BurnExecutor(NodeBurnControl(burn)).
 }
 
 function ManeuverInAP{

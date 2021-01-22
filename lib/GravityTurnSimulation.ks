@@ -34,8 +34,9 @@ local function GravTSim{
 }
 
 function FallFrom{
-	parameter t.
+	parameter t, timeStep is 1.
 	
+	set dt to timeStep.
 	local p is POSITIONAT(ship, t).
 	local spdV is VELOCITYAT(ship,t):SURFACE.
 	local upV is (p - ship:BODY:POSITION):NORMALIZED.
