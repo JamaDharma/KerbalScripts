@@ -42,7 +42,7 @@ local function BurnControl{
 	
 	local impactTime is TragectoryImpactTime().
 	
-	WAIT UNTIL VANG(steeringLock:VECTOR, SHIP:FACING:VECTOR) < 5.
+	WAIT UNTIL VANG(steeringLock:VECTOR, SHIP:FACING:VECTOR) < 15.
 	revert().
 	
 	UNTIL (not BurnPossible()) {
@@ -72,4 +72,4 @@ if BurnPossible() {
 	BurnControl().
 }
 
-RUN LandingA.
+RUN Pad.
