@@ -12,21 +12,20 @@ local function AltAtP{
 
 local function AltAtT{
 	parameter t.
-	return AltAtP(POSITIONAT(SHIP,(t))).
+	return AltAtP(POSITIONAT(SHIP,t)).
 }
 
 function TragectoryImpactTime{
-	local minSepTime is time:SECONDS.
+	parameter minSepTime is time.
 	local aboveGrnd is 100.
-	BSearch(list(
-		0.1,
-		{parameter dT. print dt. set minSepTime to minSepTime + dT.},
-		1,
-		{ 
+	BSearch({ 
 			local mtr is AltAtT(minSepTime)-aboveGrnd.
 			if mtr > aboveGrnd return aboveGrnd+1/(minSepTime+500-time:SECONDS).
 			return ABS(mtr).
-		})).
+		},
+		MakeBSComponent( 1, 0.1, 
+		{ parameter dT. set minSepTime to minSepTime + dT.})
+	).
 	
 	return minSepTime.
 }

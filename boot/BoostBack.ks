@@ -4,17 +4,26 @@ WAIT 3.
 
 RUNONCEPATH("0:/lib/Defaults").
 RUNONCEPATH("0:/lib/DeltaV").
+RUNONCEPATH("0:/lib/SurfaceAt").
+RUNONCEPATH("0:/lib/Search/TragectoryImpactSearch").
 
-function BurnPossible{
+local function BurnPossible{
 	return dvCalc:StageDeltaV() > 450 and SHIP:ALTITUDE > 10000.
 }
 
-function ChangeSettings{
+local function ImpactAngKSC{
+	parameter t.
+	local impGP is GeopositionAt(ship,t).
+	local kscP is kspGP:POSITION.
+	return VANG(ship:POSITION - kscP, impGP:POSITION-kscP).
+}
+
+local function ChangeSettings{
 	local stm is STEERINGMANAGER:MAXSTOPPINGTIME.
 	local pkd is STEERINGMANAGER:PITCHPID:KD.
 	local rkd is STEERINGMANAGER:PITCHPID:KD.
 	
-	set STEERINGMANAGER:MAXSTOPPINGTIME to 50.
+	set STEERINGMANAGER:MAXSTOPPINGTIME to 30.
 	set STEERINGMANAGER:PITCHPID:KD to 10.
 	set STEERINGMANAGER:YAWPID:KD to 10.
 	
@@ -25,11 +34,13 @@ function ChangeSettings{
 	}.
 }
 
-function BurnControl{
+local function BurnControl{
 	RCS ON.
 	local revert is ChangeSettings().
 	local steeringLock is HEADING(kspGP:HEADING,0).
 	LOCK STEERING TO steeringLock.
+	
+	local impactTime is TragectoryImpactTime().
 	
 	WAIT UNTIL VANG(steeringLock:VECTOR, SHIP:FACING:VECTOR) < 5.
 	revert().
@@ -37,6 +48,10 @@ function BurnControl{
 	UNTIL (not BurnPossible()) {
 		set steeringLock to HEADING(kspGP:HEADING,0).
 		set thrustLevel to thrustLevel+0.03.
+		set impactTime to TragectoryImpactTime(impactTime).
+		PRINT impactTime - time.
+		local ang is ImpactAngKSC(impactTime).
+		if ang > 80 break.
 		WAIT 0.
 	}
 
