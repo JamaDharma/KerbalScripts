@@ -17,7 +17,7 @@ local function AltAtT{
 
 function TragectoryImpactTime{
 	parameter minSepTime is time.
-	local aboveGrnd is 100.
+	parameter aboveGrnd is 100.
 	BSearch({ 
 			local mtr is AltAtT(minSepTime)-aboveGrnd.
 			if mtr > aboveGrnd return aboveGrnd+1/(minSepTime+500-time:SECONDS).

@@ -1,3 +1,4 @@
+if SHIP:SHIPNAME = "Booster" RUN Pad.
 HUDTEXT("Booster boot script waiting!", 5, 2, 50, blue, true).
 WAIT UNTIL SHIP:SHIPNAME = "Booster".
 WAIT 3.
@@ -10,14 +11,13 @@ RUNONCEPATH("0:/lib/Search/TragectoryImpactSearch").
 local function BurnPossible{
 	return dvCalc:StageDeltaV() > 450 and SHIP:ALTITUDE > 10000.
 }
-
-local function ImpactAngKSC{
+local function ImpactError{
 	parameter t.
-	local impGP is GeopositionAt(ship,t).
-	local kscP is kspGP:POSITION.
-	return VANG(ship:POSITION - kscP, impGP:POSITION-kscP).
+	local impP is GeopositionAt(ship,t):POSITION.
+	local padP is pad:POSITION + padAdj.
+	local errV is VXCL(UP:VECTOR, padP-impP).
+	return errV.
 }
-
 local function ChangeSettings{
 	local stm is STEERINGMANAGER:MAXSTOPPINGTIME.
 	local pkd is STEERINGMANAGER:PITCHPID:KD.
@@ -37,21 +37,25 @@ local function ChangeSettings{
 local function BurnControl{
 	RCS ON.
 	local revert is ChangeSettings().
-	local steeringLock is HEADING(kspGP:HEADING,0).
+	local steeringLock is HEADING(pad:HEADING,0).
 	LOCK STEERING TO steeringLock.
 	
 	local impactTime is TragectoryImpactTime().
+	set steeringLock to ImpactError(impactTime).
 	
-	WAIT UNTIL VANG(steeringLock:VECTOR, SHIP:FACING:VECTOR) < 15.
+	WAIT UNTIL VANG(steeringLock, SHIP:FACING:VECTOR) < 15.
 	revert().
 	
 	UNTIL (not BurnPossible()) {
-		set steeringLock to HEADING(kspGP:HEADING,0).
-		set thrustLevel to thrustLevel+0.03.
 		set impactTime to TragectoryImpactTime(impactTime).
-		PRINT impactTime - time.
-		local ang is ImpactAngKSC(impactTime).
-		if ang > 80 break.
+		set steeringLock to ImpactError(impactTime).
+		local burnTime is steeringLock:MAG/(impactTime-time)/MAXTHRUST*MASS.
+		if burnTime < 2 set thrustLevel to burnTime:SECONDS/2.
+		else set thrustLevel to thrustLevel+0.03.
+		
+		PRINT steeringLock:MAG.
+		local ang is VANG(steeringLock, SHIP:FACING:VECTOR).
+		if ang > 70 break.
 		WAIT 0.
 	}
 
@@ -60,7 +64,8 @@ local function BurnControl{
 	UNLOCK STEERING.
 }
 
-local kspGP is WAYPOINT("KSC"):GEOPOSITION.
+global pad is BODY:GEOPOSITIONLATLNG(-0.0972077889151947,-74.5576774701971).
+local padAdj is (pad:POSITION - ship:POSITION):NORMALIZED*100.
 local dvCalc is StageCalculator(1).
 PRINT "DV: "+dvCalc:StageDeltaV().
 PRINT "Mass: "+SHIP:MASS.
