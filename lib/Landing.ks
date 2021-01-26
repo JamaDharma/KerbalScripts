@@ -164,12 +164,12 @@ function OImpactBurn  {
 	local impT is TragectoryImpactTime().
 	local burnT is TragectoryBurnTime(impT).
 	clearscreen.
-	PRINT ROUND(impT-time:SECONDS).
+	PRINT ROUND((impT-time):SECONDS).
 	PRINT ROUND(burnT).
-	UNTIL (impT < time:SECONDS+burnT/2+5) {
+	UNTIL (impT < time+burnT/2+5) {
 		WAIT 1.
 		clearscreen.
-		PRINT ROUND(impT-time:SECONDS).
+		PRINT ROUND((impT-time):SECONDS).
 		PRINT ROUND(burnT).
 	}
 	
@@ -179,9 +179,9 @@ function OImpactBurn  {
 	local impAdj is 0.
 	local lastUse is 0.
 	UNTIL (AIRSPEED < landingSpeed or altGetter() < 1) {
-		if time:SECONDS > lastUse +0.3 {
+		if time > lastUse +0.3 {
 			set impAdj to ImpactAltAdj().
-			set lastUse to time:SECONDS.
+			set lastUse to time.
 		}
 		SuicideBurnControl(landingSpeed, altGetter()-impAdj, thrustSetter).
 		WAIT 0.
