@@ -1,7 +1,7 @@
 RUNONCEPATH("0:/lib/Defaults").
 RUNONCEPATH("0:/lib/BurnExecutor").
 
-function SetPeriapsis{
+local function BurnForPeriapsis{
 	parameter desiredPeriapsis.
 	
 	local rds is Body:radius.
@@ -9,15 +9,35 @@ function SetPeriapsis{
 	local aSpeed1 is SQRT(Body:mu*(2/(rds+ALT:APOAPSIS) - 2/(2*rds+ALT:APOAPSIS+desiredPeriapsis))).
 	local burn is aSpeed1 - aSpeed0.
 	
-	set maneuverNode TO NODE(TIME:SECONDS+ETA:APOAPSIS, 0, 0, burn).
+	return burn.
+}
+local function PeriapsisBurnControl{
+	parameter desiredPeriapsis.
+	
+	local rising is BurnForPeriapsis(desiredPeriapsis)>0.
+	return {
+		if rising {if ship:ORBIT:PERIAPSIS >= desiredPeriapsis  return -1.}	
+		else {if ship:ORBIT:PERIAPSIS <= desiredPeriapsis return -1.}	
+		
+		return ABS(BurnForPeriapsis(desiredPeriapsis))+0.01.
+	}.
+}
+function SetPeriapsis{
+	parameter desiredPeriapsis.
+	
+	local burn is BurnForPeriapsis(desiredPeriapsis).
+	
+	set maneuverNode TO NODE(TIME+ETA:APOAPSIS, 0, 0, burn).
 	ADD maneuverNode.
-	ExecuteBurn(maneuverNode).
+	
+	BurnExecutor(GradeBurnControl(maneuverNode,PeriapsisBurnControl(desiredPeriapsis))).
+		
 	REMOVE maneuverNode.
 }
 
-function SetApoapsis{
+function BurnForApoapsis{
 	parameter desiredApoapsis.
-
+	
 	local bRds is Body:radius.
 	
 	local cV is VELOCITY:ORBIT:MAG.
@@ -30,12 +50,39 @@ function SetApoapsis{
 	local v1 is SQRT(Body:mu*(2/pAlt - 1/dSMA)).
 	local burn is v1 - v0.
 	
-	HUDTEXT("v0: "+ ROUND(v0), 5, 2, 50, red, true).
-	
-	set maneuverNode TO NODE(TIME:SECONDS+ETA:PERIAPSIS, 0, 0, burn).
+	return burn.
+}
+function ApoapsisBurnControl{
+	parameter desiredApoapsis.
+	local rising is BurnForApoapsis(desiredApoapsis)>0.
+	return {
+		if not ship:ORBIT:HASNEXTPATCH {
+			if rising {if ship:ORBIT:APOAPSIS >= desiredApoapsis  return -1.}	
+			else {if ship:ORBIT:APOAPSIS <= desiredApoapsis return -1.}	
+		}
+		return ABS(BurnForApoapsis(desiredApoapsis))+0.01.
+	}.
+}
+function SetApoapsis{
+	parameter desiredApoapsis.
+	local burn is BurnForApoapsis(desiredApoapsis).
+
+	set maneuverNode TO NODE(TIME+ETA:PERIAPSIS, 0, 0, burn).
 	ADD maneuverNode.
-	ExecuteBurn(maneuverNode).
+	
+	BurnExecutor(GradeBurnControl(maneuverNode,ApoapsisBurnControl(desiredApoapsis))).
+	
 	REMOVE maneuverNode.
+}
+
+function SetPeriodByApoapsis{
+	parameter desiredPeriod.
+	
+	local sma is (BODY:MU*desiredPeriod^2/4/CONSTANT:PI^2)^(1/3).
+	local ap is sma - BODY:RADIUS + (sma - BODY:RADIUS - ship:ORBIT:PERIAPSIS).
+	print "Setting apoapsis to " + ap.
+	
+	SetApoapsis(ap).
 }
 
 function ExecuteBurn{

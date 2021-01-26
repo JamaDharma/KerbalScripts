@@ -13,7 +13,7 @@ function NodeBurnControl{
 		"Burn", burn,
 		"StateControl", MainBurn@,
 		"SteerControl", { return burn:DELTAV.},
-		"ThrustControl", { return 1.}
+		"BurnControl", { return burn:DELTAV:MAG.}
 	).
 	
 	function MainBurn{
@@ -25,7 +25,6 @@ function NodeBurnControl{
 		local finalDirection is burn:DELTAV.
 		set this["StateControl"] to {return VANG(burn:DELTAV, finalDirection) > 80.}.
 		set this["SteerControl"] to { return finalDirection.}.
-		set this["ThrustControl"] to { return MIN(GetBurnTime(burn), 1).}.
 	}
 	
 	return this.
@@ -38,7 +37,7 @@ function CustomBurnControl{
 		"Burn", burn,
 		"StateControl", MainBurn@,
 		"SteerControl", { return burn:DELTAV.},
-		"ThrustControl", tc
+		"BurnControl", tc
 	).
 	
 	function MainBurn{
@@ -55,6 +54,22 @@ function CustomBurnControl{
 	return this.
 }
 
+function GradeBurnControl{
+	parameter burn, tc.
+	
+	local this is lexicon(
+		"Burn", burn,
+		"StateControl", { return tc() <= 0.},
+		"BurnControl", tc
+	).
+	
+	if(burn:PROGRADE > 0)
+		this:ADD("SteerControl", { return PROGRADE.}).
+	else
+		this:ADD("SteerControl", { return RETROGRADE.}).
+
+	return this.
+}
 function ProgradeBurnControl{
 	parameter burn, tc.
 	
@@ -62,7 +77,7 @@ function ProgradeBurnControl{
 		"Burn", burn,
 		"StateControl", { return tc() <= 0.},
 		"SteerControl", { return PROGRADE.},
-		"ThrustControl", tc
+		"BurnControl", tc
 	).
 	
 	return this.
@@ -74,7 +89,7 @@ function RetrogradeBurnControl{
 		"Burn", burn,
 		"StateControl", { return tc() <= 0.},
 		"SteerControl", { return RETROGRADE.},
-		"ThrustControl", tc
+		"BurnControl", tc
 	).
 	
 	return this.
@@ -114,7 +129,7 @@ function BurnExecutor{
 	
 	until burnControl:StateControl() {
 		set steeringLock to  burnControl:SteerControl().
-		set thrustLevel to burnControl:ThrustControl().
+		set thrustLevel to burnControl:BurnControl()*MASS/MAXTHRUST.
 		WAIT 0.
 	}
 	

@@ -20,7 +20,7 @@ function TragectoryImpactTime{
 	parameter aboveGrnd is 100.
 	BSearch({ 
 			local mtr is AltAtT(minSepTime)-aboveGrnd.
-			if mtr > aboveGrnd return aboveGrnd+1/(minSepTime+500-time:SECONDS).
+			if mtr > aboveGrnd return aboveGrnd+1/(minSepTime-time+500):SECONDS.
 			return ABS(mtr).
 		},
 		MakeBSComponent( 1, 0.1, 
