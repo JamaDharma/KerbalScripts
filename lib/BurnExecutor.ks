@@ -1,4 +1,4 @@
-RUNONCEPATH("0:/lib/DeltaV").
+RUNONCEPATH("0:/lib/Ship/DeltaV").
 
 local dvCalc is StageCalculator().
 local function GetBurnTime{
@@ -67,7 +67,18 @@ function ProgradeBurnControl{
 	
 	return this.
 }
-
+function RetrogradeBurnControl{
+	parameter burn, tc.
+	
+	local this is lexicon(
+		"Burn", burn,
+		"StateControl", { return tc() <= 0.},
+		"SteerControl", { return RETROGRADE.},
+		"ThrustControl", tc
+	).
+	
+	return this.
+}
 local function PrepareForBurn{
 	parameter burn.
 	local burnTime is GetBurnTime(burn).
