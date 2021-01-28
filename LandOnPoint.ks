@@ -14,8 +14,7 @@ local tgt is GetTargetGeo().
 if HASNODE REMOVE NEXTNODE.
 
 local targetTime is TimeOnTarget(time+300,tgt).
-local horVel is HorVelAt(targetTime)[1]:MAG.
-local burnTime is targetTime-horVel*MASS/MAXTHRUST/2.
+local burnTime is targetTime-HorVelAt(targetTime)[1]:MAG*MASS/MAXTHRUST/2.
 local info is FallFrom(burnTime,10).
 local endH is EndHeight().
 UpdateInfo(10).
@@ -23,6 +22,10 @@ PrintInfo().
 
 CorrectionBurn().
 
+UpdateInfo(1).
+PrintInfo().
+UpdateInfo(1).
+PrintInfo().
 UpdateInfo(1).
 PrintInfo().
 
@@ -44,7 +47,7 @@ WAIT UNTIL burnTime < time.
 SetThrust(1).
 WAIT UNTIL VANG(SRFRETROGRADE:VECTOR,UP:VECTOR) < 45.
 
-run LandingV.
+run TerminalGuidance.
 
 //functions
 local function SeparationNrm{
@@ -68,8 +71,7 @@ local function UpdateInfo{
 	parameter dt.
 	
 	set targetTime to TimeOnTarget(targetTime,tgt).
-	set horVel to HorVelAt(burnTime)[1]:MAG.
-	set burnTime to targetTime - info[1]/horVel.
+	set burnTime to targetTime - info[0].
 	set info to FallFrom(burnTime, dt).
 	set endH to EndHeight().
 }
@@ -114,7 +116,7 @@ local function SetCorrection{
 	return NEXTNODE:PROGRADE.
 }
 local function CorrectionBurn{
-	if targetTime - time < 300 return.
+	if targetTime - time < 150 return.
 	
 	local inclCorrTime is targetTime - ship:ORBIT:PERIOD/4.
 	if inclCorrTime > time {
