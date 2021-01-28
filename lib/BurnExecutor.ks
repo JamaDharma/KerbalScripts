@@ -1,19 +1,19 @@
 RUNONCEPATH("0:/lib/Ship/DeltaV").
 
-local dvCalc is StageCalculator().
-local function GetBurnTime{
-	parameter burn.
-	return dvCalc:BurnTime(burn:DELTAV:MAG).
-}
-
 function NodeBurnControl{
 	parameter burn.
+	
+	local dvCalc is StageCalculator().
+	local function GetBurnTime{
+		parameter burn.
+		return dvCalc:BurnTime(burn:DELTAV:MAG).
+	}
 	
 	local this is lexicon(
 		"Burn", burn,
 		"StateControl", MainBurn@,
 		"SteerControl", { return burn:DELTAV.},
-		"BurnControl", { return burn:DELTAV:MAG.}
+		"BurnLeft", { return burn:DELTAV:MAG.}
 	).
 	
 	function MainBurn{
@@ -33,11 +33,17 @@ function NodeBurnControl{
 function CustomBurnControl{
 	parameter burn, tc.
 	
+	local dvCalc is StageCalculator().
+	local function GetBurnTime{
+		parameter burn.
+		return dvCalc:BurnTime(burn:DELTAV:MAG).
+	}
+	
 	local this is lexicon(
 		"Burn", burn,
 		"StateControl", MainBurn@,
 		"SteerControl", { return burn:DELTAV.},
-		"BurnControl", tc
+		"BurnLeft", tc
 	).
 	
 	function MainBurn{
@@ -60,7 +66,7 @@ function GradeBurnControl{
 	local this is lexicon(
 		"Burn", burn,
 		"StateControl", { return tc() <= 0.},
-		"BurnControl", tc
+		"BurnLeft", tc
 	).
 	
 	if(burn:PROGRADE > 0)
@@ -77,7 +83,7 @@ function ProgradeBurnControl{
 		"Burn", burn,
 		"StateControl", { return tc() <= 0.},
 		"SteerControl", { return PROGRADE.},
-		"BurnControl", tc
+		"BurnLeft", tc
 	).
 	
 	return this.
@@ -89,14 +95,13 @@ function RetrogradeBurnControl{
 		"Burn", burn,
 		"StateControl", { return tc() <= 0.},
 		"SteerControl", { return RETROGRADE.},
-		"BurnControl", tc
+		"BurnLeft", tc
 	).
 	
 	return this.
 }
 local function PrepareForBurn{
-	parameter burn.
-	local burnTime is GetBurnTime(burn).
+	parameter burn, burnTime.
 
 	LOCK STEERING TO burn:DELTAV.
 
@@ -112,10 +117,9 @@ local function PrepareForBurn{
 function BurnExecutor{
 	parameter burnControl.
 	local burn is burnControl:Burn.
+	local burnTime is StageCalculator():BurnTime(burn:DELTAV:MAG).
 	
-	PrepareForBurn(burn).
-	
-	local burnTime is GetBurnTime(burn).	
+	PrepareForBurn(burn, burnTime).
 
 	local steeringLock is burnControl:SteerControl().
 	LOCK STEERING TO steeringLock.
@@ -129,7 +133,7 @@ function BurnExecutor{
 	
 	until burnControl:StateControl() {
 		set steeringLock to  burnControl:SteerControl().
-		set thrustLevel to burnControl:BurnControl()*MASS/MAXTHRUST.
+		set thrustLevel to burnControl:BurnLeft()*MASS/MAXTHRUST.
 		WAIT 0.
 	}
 	
