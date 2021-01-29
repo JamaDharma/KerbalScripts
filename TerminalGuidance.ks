@@ -25,7 +25,7 @@ function MakeTerminalControl{
 		local vbD is vVel*vbT/2.
 		local vK is vbD/hgh.
 		
-		local dst is (NormalizeGP(tGP) - NormalizeGP(ship)):MAG.
+		local dst is (NormalizeGP(tGP) - NormalizeGP(ship)):MAG-10.
 		local hVel is GROUNDSPEED.
 		local hAcc is shipAcc*sin(ang).
 		local hbT is hVel/hAcc+1.
