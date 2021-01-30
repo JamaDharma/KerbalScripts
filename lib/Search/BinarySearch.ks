@@ -1,40 +1,51 @@
 RUNONCEPATH("0:/lib/Search/SearchComponent").
 
-local function TryStep {
+local function BinarySearch{
 	parameter metric.
-	parameter lst.
-	parameter dX.
-	parameter oldM.
-	parameter upstep.
+	parameter context.
+	parameter dir.
+	parameter x0,x1.
+
+	IF ABS(x0+x1) < context:MinimumStep { return. }
 	
-	set newM to metric().
-	IF  newM < oldM { 
-		if upstep { set newstep to dX*2.	} 
-			else { set newstep to dX/2. }
-		BSearch(metric, lst, upstep, newstep, newM).
-		return true.
-	}
-	return false.
+	local shift is (x0+x1)/2.
+
+	context:Changer(shift).//step
+	local newM is metric()*dir.
+	if newM < 0
+		return BinarySearch(metric,context,dir, 0, x1-shift).
+	if newM > 0
+		return BinarySearch(metric,context,dir, x0-shift, 0).
+}
+local function BoundSearch{
+	parameter metric.
+	parameter context.
+	parameter dir.
+	parameter dX is context:DefaultStep.
+
+	local shift is dX*dir.
+	context:Changer(shift).//step
+	local newM is metric()*dir.
+	if newM < 0
+		return BoundSearch(metric,context, dir, dx*2).
+	if newM > 0
+		return BinarySearch(metric,context,dir, -shift, 0).
+}
+local function DirectionSearch{
+	parameter metric.
+	parameter context.
+	
+	local m0 is metric().
+	
+	if m0 < 0 
+		return BoundSearch(metric,context, 1).
+	if m0 > 0 
+		return BoundSearch(metric,context, -1).
 }
 
 function BSearch{
 	parameter metric.
 	parameter context.
-	parameter upstep is true.
-	parameter dX is context:DefaultStep.
-	parameter startingMetric is metric().
 
-
-	local changer is context:Changer.
-	IF ABS(dX) < context:MinimumStep { return. }
-	
-	changer:call(dX).//step
-	if TryStep(metric, context, dX, startingMetric, upstep) { return. }
- 	
-	changer:call(-dX*2).//*2 to compensate prev attempt
-	if TryStep(metric, context, dX, startingMetric, upstep) { return. }
-	
-	if upstep { set context:DefaultStep to dX/2+context:MinimumStep. }//WTF?!!!
-	changer:call(dX).//failed to improve, no steps
-	BSearch(metric, context, false, dX/2, startingMetric).
+	DirectionSearch(metric, context).
 }
