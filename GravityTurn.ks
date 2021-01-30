@@ -24,18 +24,19 @@ function TurnAngle100{
 	local count is 0.
 	function Metric{
 		PRINT "Trying angle:" + ang100.
+		if ang100 < 0 return 1.
 		set count to count+1.
 		local result is gts(1,100,-90-ang100).
 		if result["VX"] > result["VZ"] {
 			PRINT "Too steep".
-			return tAlt-ang100.
+			return -1.
 		}
 		PRINT "45 at " +(-result["Z"]).
-		return ABS(result["Z"]+tAlt).
+		return tAlt+result["Z"].
 	}
 	
-	GSearch(	Metric@,
-		MakeSearchComponent( 1, 1/16, {parameter dA. set ang100 to ang100 + dA.})).
+	BSearch(	Metric@,
+		MakeSearchComponent( 1, 1/32, {parameter dA. set ang100 to ang100 + dA.})).
 	print count.
 	return ang100.
 }
@@ -47,8 +48,11 @@ CORE:PART:CONTROLFROM().
 //10000 283
 //8000 328
 //6000 388
-//6000 388
-local tAng is TurnAngle100(4000).
+//5000 413
+//4000 454 - but partial burnup 
+local tAng is TurnAngle100(5000).
+
+WaitKey().
 
 set thrustLevel to 1.
 LOCK STEERING TO HEADING(90, 90 - pitchLock).
