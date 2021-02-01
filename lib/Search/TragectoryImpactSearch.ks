@@ -1,3 +1,4 @@
+RUNONCEPATH("0:/lib/Search/GoldenSearch").
 RUNONCEPATH("0:/lib/Search/BinarySearch").
 
 local function Gravity {
@@ -18,12 +19,12 @@ local function AltAtT{
 function TragectoryImpactTime{
 	parameter minSepTime is time.
 	parameter aboveGrnd is 100.
-	BSearch({ 
+	GSearch({ 
 			local mtr is AltAtT(minSepTime)-aboveGrnd.
 			if mtr > aboveGrnd return aboveGrnd+1/(minSepTime-time+500):SECONDS.
 			return ABS(mtr).
 		},
-		MakeBSComponent( 1, 0.1, 
+		MakeSearchComponent( 1, 0.1, 
 		{ parameter dT. set minSepTime to minSepTime + dT.})
 	).
 	

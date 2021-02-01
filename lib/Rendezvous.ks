@@ -1,5 +1,5 @@
 RUNONCEPATH("0:/lib/Debug").
-RUNONCEPATH("0:/lib/Search/BinarySearch").
+RUNONCEPATH("0:/lib/Search/GoldenSearch").
 RUNONCEPATH("0:/lib/Search/ManeuverSearch").
 
 function PrintInfo{
@@ -14,9 +14,9 @@ function MinimalSeparationTime{
 	parameter h, m, s.
 	local minSepTime is time + h*3600 + m*60 + s.
 	
-	BSearch(
+	GSearch(
 		{ return Separation(minSepTime).},
-		MakeBSComponent( 1, 0.1, {parameter dT. set minSepTime to minSepTime + dT.})
+		MakeSearchComponent( 1, 0.1, {parameter dT. set minSepTime to minSepTime + dT.})
 	).
 	
 	return minSepTime.
