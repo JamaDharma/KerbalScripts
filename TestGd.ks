@@ -37,6 +37,7 @@ local context is list(
 			{
 				parameter dT.
 				NPrint("dT",dT).
+				NPrint("branchTime",branchTime).
 				set branchTime to branchTime+dT.
 			}
 		),MakeGDComponent(
@@ -44,9 +45,12 @@ local context is list(
 			{
 				parameter dS.
 				NPrint("dS",dS).				
+				NPrint("branchSpd",branchSpd).				
 				set branchSpd to branchSpd+dS.
 			}
 		)),
 	Branch@, Commit@, Revert@).
 
 GradientDescent(context).
+PRINT mainTime.
+PRINT mainSpeed.

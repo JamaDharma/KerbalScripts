@@ -1,5 +1,6 @@
 RUNONCEPATH("0:/lib/Debug").
 RUNONCEPATH("0:/lib/Search/GradientDescent").
+RUNONCEPATH("0:/lib/Search/OneStepOptimization").
 
 function MakeMSearcher {
 	parameter metric, timeScale, mainTime.
@@ -33,35 +34,35 @@ function MakeMSearcher {
 		wait 0.
 	}
 	
-	local minTimeStep is timeScale/10.
-	local minBurnStep is 0.1.
+	local minTimeStep is 0.1.
+	local minBurnStep is 0.01.
 	local componentList is LIST(
-		MakeGDComponent(
-			minTimeStep,
+		MakeSearchComponent(
+			1, minTimeStep,
 			{	
 				parameter dT.
 				set branchTime to branchTime+dT*timeScale.
 			}
-		), MakeGDComponent(
-			minTimeStep,
+		),MakeSearchComponent(
+			1, minTimeStep,
 			{
 				parameter dX.
 				set NEXTNODE:ETA to NEXTNODE:ETA+dX*timeScale.
 			}
-		),  MakeGDComponent(
-			minBurnStep,
+		),MakeSearchComponent(
+			1, minBurnStep,
 			{
 				parameter dX.
 				set NEXTNODE:PROGRADE to NEXTNODE:PROGRADE+dX.
 			}
-		),  MakeGDComponent(
-			minBurnStep,
+		),MakeSearchComponent(
+			1, minBurnStep,
 			{
 				parameter dX.
 				set NEXTNODE:RADIALOUT to NEXTNODE:RADIALOUT+dX.
 			}
-		),MakeGDComponent(
-			minBurnStep,
+		),MakeSearchComponent(
+			1, minBurnStep,
 			{
 				parameter dX.
 				set NEXTNODE:NORMAL to NEXTNODE:NORMAL+dX.
@@ -77,7 +78,7 @@ function MakeMSearcher {
 			componentList,
 			Branch@, Commit@, Revert@).
 		
-		GradientDescent(context).
+		OneStepOptimization(context).
 	}
 	
 	local this is lexicon(

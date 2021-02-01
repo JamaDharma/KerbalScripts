@@ -1,4 +1,5 @@
 RUNONCEPATH("0:/lib/Debug").
+RUNONCEPATH("0:/lib/Search/SearchComponent").
 local function DecayV{
 	parameter oldV, myV.
 	local cnt is 0.
