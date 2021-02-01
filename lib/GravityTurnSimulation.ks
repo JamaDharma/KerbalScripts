@@ -1,23 +1,41 @@
 RUNONCEPATH("0:/lib/Ship/Engines").
 
 function MakeGravTSim{
-	parameter condition.
-	parameter engList is ListActiveEngines().
+	parameter massFlow.
 	parameter shipThrust is MAXTHRUST.
 
-	local massFlow is EnginesConsumption(engList).
 	local br is body:radius.
 	local bg is body:mu/body:radius^2.
+	
+	local condition is { return vz > 0.}.
+	local dt is 1.
+	
+	local function SimVelAng{
+		parameter exitCondition, timeStep.
+		parameter startSpeed, startAngle.
+		parameter cml is list(0,0,0).
 		
-	local function GravTSim{
-		parameter dt, startSpeed, startAngle.
-		return GravTStep(dt, startSpeed*COS(startAngle),startSpeed*SIN(startAngle)).
+		set condition to exitCondition.
+		set dt to timeStep.
+		
+		return GravTStep(
+			startSpeed*COS(startAngle),
+			startSpeed*SIN(startAngle),
+			cml).
+	}
+	local function SimState{
+		parameter exitCondition, timeStep.
+		parameter st.
+		
+		set condition to exitCondition.
+		set dt to timeStep.
+		
+		return GravTStep(st["VX"],st["VZ"],list(st["T"],st["X"],st["Z"])).
 	}
 
 	local function GravTStep{
-		parameter dt.
 		parameter vx,vz.
-		parameter cml is list(0,0,0).
+		parameter cml.
 		
 		local accel is shipThrust/(MASS-cml[0]*massFlow).
 		//[0, 1, 2]
@@ -40,13 +58,15 @@ function MakeGravTSim{
 		
 		local sk is accel/spd.
 		local dvx is vx*sk.
-		local dvz is bg - vx*vx/br - vz*sk.	
+		local dvz is vz*sk - (bg - vx*vx/br).	
 		
 		
-		return GravTStep(dt, vx-dvx*dt, vz+dvz*dt, cml).
+		return GravTStep(vx+dvx*dt, vz+dvz*dt, cml).
 	}
 
-	return GravTSim@.
+	return lexicon(
+		"VelAng", SimVelAng@,
+		"State", SimState@).
 }
 
 function FallFrom{
@@ -55,9 +75,9 @@ function FallFrom{
 	local p is POSITIONAT(ship, t).
 	local spdV is VELOCITYAT(ship,t):SURFACE.
 	local upV is (p - ship:BODY:POSITION):NORMALIZED.
-	local ang is VANG(spdV,upV)-90.
+	local ang is VANG(spdV,upV).
 
-	local gts is MakeGravTSim({parameter vx,vz,cml. return vx < 0.}).
+	local gts is MakeGravTSim({parameter vx,vz,cml. return vz >= 0.},-MAXTHRUST).
 	return gts(timeStep,spdV:MAG,ang).
 }
 

@@ -1,4 +1,37 @@
+RUNONCEPATH("0:/lib/Debug").
 RUNONCEPATH("0:/lib/Defaults").
+
+function MakeProfileControl{
+	parameter profile.
+	
+	local itr is profile:ITERATOR.
+	itr:NEXT().
+
+	local this is lexicon().
+	function NextPoint{
+		set this["low"] to itr:VALUE.
+		if itr:NEXT(){
+			local inptDiff is itr:VALUE[0] - this["low"][0].
+			local outptDiff to itr:VALUE[1] - this["low"][1].
+			set this["grd"] to outptDiff/inptDiff.
+			NPrintE(itr:VALUE).
+		}
+	}
+	NextPoint().
+	
+	function OutputControl {
+		parameter inpt.
+		
+		if itr:VALUE[0] <= inpt NextPoint().
+		
+		return this["low"][1] + (inpt - this["low"][0])*this["grd"].
+	}
+	
+	return lexicon(
+		"StateControl", { return itr:ATEND.},
+		"OutputControl", OutputControl@
+	).
+}
 
 function AscendByProfile{
 	parameter trgtApoapsis, pitchSetter.

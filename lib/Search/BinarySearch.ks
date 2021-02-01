@@ -5,10 +5,11 @@ local function BinarySearch{
 	parameter context.
 	parameter dir.
 	parameter x0,x1.
-
-	IF ABS(x0+x1) < context:MinimumStep { return. }
 	
 	local shift is (x0+x1)/2.
+	IF ABS(x0+x1) < context:MinimumStep { return shift. }
+	
+
 
 	context:Changer(shift).//step
 	local newM is metric()*dir.
@@ -47,5 +48,5 @@ function BSearch{
 	parameter metric.
 	parameter context.
 
-	DirectionSearch(metric, context).
+	return DirectionSearch(metric, context).
 }
