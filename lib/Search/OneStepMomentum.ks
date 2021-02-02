@@ -7,22 +7,22 @@ local function OneStep{
 	parameter startingMetric is metric().
 
 	local dX is context:DefaultStep.
-	IF ABS(dX) < context:MinimumStep 
-		return 0. 
-		
+	IF ABS(dX) < context:MinimumStep
+		return list(0,startingMetric).
+
 	local changer is context:Changer.
-	
+
 	//step
 	changer:call(dX).
 	local newM is metric().
-	if newM < startingMetric 
-		return dx.
-	
- 	//2 to compensate prev attempt
+	if newM < startingMetric
+		return list(dx,newM).
+
+	//2 to compensate prev attempt
 	changer:call(-2*dX).
 	set newM to metric().
 	if newM < startingMetric
-		return -dx.
+		return list(-dx,newM).
 
 	//failed to improve, no steps
 	changer:call(dX).//waste of set
@@ -32,22 +32,25 @@ local function OneStep{
 
 local function OS{
 	parameter context.
-	
+
 	local stepSize is context[0].
 	local metric is context[1].
 	local cmps is context[2].
-	
+
 	local result is list().
+	local currM is metric().
 	for cmp in cmps {
-		result:ADD(OneStep(metric, cmp)).
+		local sr is OneStep(metric, cmp, currM).
+		result:ADD(sr[0]).
+		set currM to sr[1].	
 	}
 	return result.
 }
 
-function OneStepOptimization{
+function OneStepMomentum{
 	parameter context.
 	local count is 0.
-	
+
 
 	UNTIL TERMINAL:INPUT:HASCHAR(){
 		OS(context).
