@@ -55,8 +55,9 @@ function RunTest{
 	NPrint("evalCount",evalCount).
 	NPrint("duration",duration:SECONDS).
 }
-//2088 2949 19.86
-//RunTest(OneStepOptimization@).
-//2088 2949 20.44
+//2088 2949 19.86 OneStepOptimization
+//2088 2949 20.44 OneStepMomentum overhead
 //2088 2399 20.62 - passing metric
+//1635 2082 20.94 - momentum
+//1094 1088 14.24 - momentum upstep
 RunTest(OneStepMomentum@).
