@@ -23,10 +23,15 @@ LOCK STEERING TO HEADING(90, 90 - pitchLock).
 
 STAGE.
 
-UNTIL pitchControl:StateControl() {
+UNTIL AIRSPEED > 10 {
 	set pitchLock to pitchControl:OutputControl(AIRSPEED).
 	WAIT 0.
 }
+UNTIL pitchControl:StateControl() {
+	set pitchLock to pitchControl:OutputControl(AIRSPEED)*2-ProgradePitch().
+	WAIT 0.
+}
+
 ON (ALTITUDE > alt45) {
 	NPrint("Angle from up",pitchLock).
 }
