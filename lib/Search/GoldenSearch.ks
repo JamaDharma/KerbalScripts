@@ -9,7 +9,7 @@ local function GoldenSearch{
 	parameter xa,xb,dx.
 	parameter noC,xC,mC.
 	parameter noD,xD,mD.
-	PRINT "gold: "+dx.
+
 	IF ABS(dX) < context:MinimumStep { return. }
 	
 	set xa to xa-shift.
