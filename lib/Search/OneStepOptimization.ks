@@ -50,13 +50,15 @@ local function OS{
 function OneStepOptimization{
 	parameter context.
 	local count is 0.
-	UNTIL not OS(context) or TERMINAL:INPUT:HASCHAR(){
+	UNTIL TERMINAL:INPUT:HASCHAR(){
+		OS(context).
 		set count to count+1.
-		if count > 4 {
+		if count > 3 {
 			set count to 0.
 			for cmp in context[2] {
 				set cmp:DefaultStep to cmp:DefaultStep*2.
 			}
+			if not OS(context) break.
 		}
 	}
 }
