@@ -5,21 +5,22 @@ function BurnForPeriapsis{
 	parameter desiredPeriapsis.
 	
 	local rds is Body:radius.
-	local aSpeed0 is SQRT(Body:mu*(2/(rds+ALT:APOAPSIS) - 2/(2*rds+ALT:APOAPSIS+ALT:PERIAPSIS))).
-	local aSpeed1 is SQRT(Body:mu*(2/(rds+ALT:APOAPSIS) - 2/(2*rds+ALT:APOAPSIS+desiredPeriapsis))).
+	local ap is ALT:APOAPSIS.
+	local aSpeed0 is SQRT(Body:mu*(2/(rds+ap) - 2/(2*rds+ap+ALT:PERIAPSIS))).
+	local aSpeed1 is SQRT(Body:mu*(2/(rds+ap) - 2/(2*rds+ap+desiredPeriapsis))).
 	local burn is aSpeed1 - aSpeed0.
 	
 	return burn.
 }
-local function PeriapsisBurnControl{
+local function PeriapsisThrustControl{
 	parameter desiredPeriapsis.
 	
 	local rising is BurnForPeriapsis(desiredPeriapsis)>0.
 	return {
 		if rising {if ship:ORBIT:PERIAPSIS >= desiredPeriapsis  return -1.}	
 		else {if ship:ORBIT:PERIAPSIS <= desiredPeriapsis return -1.}	
-		
-		return ABS(BurnForPeriapsis(desiredPeriapsis))+0.01.
+		local burn is ABS(BurnForPeriapsis(desiredPeriapsis))+0.01.
+		return burn*MASS/MAXTHRUST.
 	}.
 }
 function SetPeriapsis{
@@ -32,7 +33,7 @@ function SetPeriapsis{
 	ADD maneuverNode.
 	if skipBurn return.
 	
-	BurnExecutor(GradeBurnControl(maneuverNode,PeriapsisBurnControl(desiredPeriapsis))).
+	BurnExecutor(GradeBurnControl(maneuverNode,PeriapsisThrustControl(desiredPeriapsis))).
 		
 	REMOVE maneuverNode.
 }
@@ -54,7 +55,7 @@ function BurnForApoapsis{
 	
 	return burn.
 }
-function ApoapsisBurnControl{
+function ApoapsisThrustControl{
 	parameter desiredApoapsis.
 	local rising is BurnForApoapsis(desiredApoapsis)>0.
 	return {
@@ -62,7 +63,8 @@ function ApoapsisBurnControl{
 			if rising {if ship:ORBIT:APOAPSIS >= desiredApoapsis  return -1.}	
 			else {if ship:ORBIT:APOAPSIS <= desiredApoapsis return -1.}	
 		}
-		return ABS(BurnForApoapsis(desiredApoapsis))+0.01.
+		local burn is ABS(BurnForApoapsis(desiredApoapsis))+0.01.
+		return burn*MASS/MAXTHRUST.
 	}.
 }
 function SetApoapsis{
@@ -75,7 +77,7 @@ function SetApoapsis{
 	ADD maneuverNode.
 	if skipBurn return.
 	
-	BurnExecutor(GradeBurnControl(maneuverNode,ApoapsisBurnControl(desiredApoapsis))).
+	BurnExecutor(GradeBurnControl(maneuverNode,ApoapsisThrustControl(desiredApoapsis))).
 	
 	REMOVE maneuverNode.
 }
@@ -88,7 +90,11 @@ function SetPeriodByApoapsis{
 	local ap is sma - BODY:RADIUS + (sma - BODY:RADIUS - ship:ORBIT:PERIAPSIS).
 	print "Setting apoapsis to " + ap.
 	
-	SetApoapsis(ap,skipBurn).
+	SetApoapsis(ap,true).
+	
+	if skipBurn return.
+	BurnExecutor(NodeBurnControl(NEXTNODE)).
+	REMOVE NEXTNODE.
 }
 
 function ExecuteBurn{

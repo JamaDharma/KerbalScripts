@@ -1,4 +1,20 @@
+RUNONCEPATH("0:/lib/Debug").
 RUNONCEPATH("0:/lib/Ship/DeltaV").
+
+function MakeThrustControl{
+	parameter tgtValue, sign.
+	
+	local currentThrust is 1.
+	local tracker is PIDLOOP(1,0,1,-0.25,0.125).
+	set tracker:SETPOINT to sign*tgtValue.
+	
+	return {
+		parameter currVal.
+		local change is tracker:UPDATE(time:SECONDS, sign*currVal).
+		set currentThrust to MAX(0,MIN(1,currentThrust+currentThrust*change)).
+		return currentThrust.
+	}.
+}
 
 function NodeBurnControl{
 	parameter burn.
@@ -13,7 +29,7 @@ function NodeBurnControl{
 		"Burn", burn,
 		"StateControl", MainBurn@,
 		"SteerControl", { return burn:DELTAV.},
-		"BurnLeft", { return burn:DELTAV:MAG.}
+		"ThrustControl", { return burn:DELTAV:MAG*MASS/MAXTHRUST.}
 	).
 	
 	function MainBurn{
@@ -43,7 +59,7 @@ function CustomBurnControl{
 		"Burn", burn,
 		"StateControl", MainBurn@,
 		"SteerControl", { return burn:DELTAV.},
-		"BurnLeft", tc
+		"ThrustControl", tc
 	).
 	
 	function MainBurn{
@@ -66,7 +82,7 @@ function GradeBurnControl{
 	local this is lexicon(
 		"Burn", burn,
 		"StateControl", { return tc() <= 0.},
-		"BurnLeft", tc
+		"ThrustControl", tc
 	).
 	
 	if(burn:PROGRADE > 0)
@@ -83,7 +99,7 @@ function ProgradeBurnControl{
 		"Burn", burn,
 		"StateControl", { return tc() <= 0.},
 		"SteerControl", { return PROGRADE.},
-		"BurnLeft", tc
+		"ThrustControl", tc
 	).
 	
 	return this.
@@ -95,11 +111,12 @@ function RetrogradeBurnControl{
 		"Burn", burn,
 		"StateControl", { return tc() <= 0.},
 		"SteerControl", { return RETROGRADE.},
-		"BurnLeft", tc
+		"ThrustControl", tc
 	).
 	
 	return this.
 }
+
 local function PrepareForBurn{
 	parameter burn, burnTime.
 
@@ -133,7 +150,7 @@ function BurnExecutor{
 	
 	until burnControl:StateControl() {
 		set steeringLock to  burnControl:SteerControl().
-		set thrustLevel to burnControl:BurnLeft()*MASS/MAXTHRUST.
+		set thrustLevel to burnControl:ThrustControl().
 		WAIT 0.
 	}
 	
