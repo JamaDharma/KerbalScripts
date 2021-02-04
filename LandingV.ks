@@ -3,6 +3,7 @@ RUNONCEPATH("0:/lib/Landing").
 
 parameter landingSpeed is 1.
 
+SAS OFF.
 GEAR ON.
 BRAKES ON.
 
