@@ -36,7 +36,7 @@ function MomentumTracker{
 	for cmp in cmps {
 		momentumV:ADD(0).
 		set ds to MAX(ds, cmp:DefaultStep).
-		set ds to MAX(ds, cmp:MinimumStep).
+		set ds to MIN(ds, cmp:MinimumStep).
 	}
 	
 	local mCmp is MakeSearchComponent(ds,ms,{

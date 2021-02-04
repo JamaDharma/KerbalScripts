@@ -1,5 +1,6 @@
 RUNONCEPATH("0:/lib/Debug").
 RUNONCEPATH("0:/lib/Search/GradientDescent").
+RUNONCEPATH("0:/lib/Search/OneStepMomentum").
 RUNONCEPATH("0:/lib/Search/OneStepOptimization").
 
 function MakeMSearcher {
@@ -34,7 +35,7 @@ function MakeMSearcher {
 		wait 0.
 	}
 	
-	local minTimeStep is 0.1.
+	local minTimeStep is 0.1/timeScale.
 	local minBurnStep is 0.01.
 	local componentList is LIST(
 		MakeSearchComponent(
@@ -78,7 +79,7 @@ function MakeMSearcher {
 			componentList,
 			Branch@, Commit@, Revert@).
 		
-		OneStepOptimization(context).
+		OneStepMomentum(context).
 	}
 	
 	local this is lexicon(

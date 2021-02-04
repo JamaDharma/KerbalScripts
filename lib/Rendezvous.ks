@@ -11,7 +11,7 @@ function PrintInfo{
 	PRINT "------------------------".
 }
 function MinimalSeparationTime{
-	parameter h, m, s.
+	parameter h is 0, m is 0, s is 0.
 	local minSepTime is time + h*3600 + m*60 + s.
 	
 	GSearch(
@@ -37,7 +37,7 @@ function FinalApproach{
 	
 	PrintInfo(msTime).
 	
-	local search is MakeMSearcher(Metric@,1,msTime).
+	local search is MakeMSearcher(Metric@,10,msTime).
 	
 	function Metric{
 		return TargetMetric(search:TrgTime()).
@@ -55,7 +55,7 @@ function MakeRendezvous{
 	
 	PrintInfo(msTime).
 	
-	local search is MakeMSearcher(Metric@,1,msTime).
+	local search is MakeMSearcher(Metric@,100,msTime).
 	
 	function Metric{
 		return TargetMetric(search:TrgTime()).
