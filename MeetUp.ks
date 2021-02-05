@@ -12,8 +12,8 @@ function MeetUpControl {
 	local dist is COS(vAngle)*TARGET:DISTANCE.
 	
 	local accel is MAXTHRUST/MASS.
-	local brakingTime is spd/accel+1.//1 sec margin
-	local brakingDst is brakingTime*retroV:MAG/2.
+	local brakingTime is spd/accel.
+	local brakingDst is (brakingTime+1)*retroV:MAG/2.//1 sec margin
 	
 	//NPrint("brakingDst",brakingDst).
 	//NPrint("dist",dist).
@@ -22,7 +22,10 @@ function MeetUpControl {
 
 		
 	IF startBraking {
-		thrustSetter(MIN(1,brakingDst/dist)).
+		if dist <= 0
+			thrustSetter((spd+0.1)/accel).
+		else
+			thrustSetter(MIN(1,brakingDst/dist)).
 	} ELSE {
 		thrustSetter(0).
 	}
@@ -38,7 +41,7 @@ local retro0 is retro.
 SAS OFF.
 LOCK STEERING to retro.
 
-UNTIL VANG(retro0, retro) > 30 and retro:MAG < 1 {
+UNTIL VANG(retro0, retro) > 60 or retro:MAG < 0.01 {
 	set retro to MeetUpControl(SetThrust@).
 	WAIT 0.
 }
