@@ -93,3 +93,22 @@ function SurfaceRoll {
 	RETURN 90 -VANG(GetUpVec(p1),SurfaceRollVector(p1)).
 }
 
+FUNCTION SurfaceNormal {
+	PARAMETER rover, dir, sideOffset, gradeOffset.
+	LOCAL localBody IS rover:BODY.
+	LOCAL basePos IS rover:POSITION.
+	LOCAL upVec IS GetUpVec(rover).
+	
+	local forVec is VXCL(upVec,dir:FOREVECTOR):NORMALIZED*gradeOffset.
+	LOCAL rightVec IS VXCL(upVec,dir:STARVECTOR):NORMALIZED*sideOffset.
+	
+	local lfPos is localBody:GEOPOSITIONOF(basePos - rightVec + forVec):POSITION.
+	local rfPos is localBody:GEOPOSITIONOF(basePos + rightVec + forVec):POSITION.
+	local lbPos is localBody:GEOPOSITIONOF(basePos - rightVec - forVec):POSITION.
+	local rbPos is localBody:GEOPOSITIONOF(basePos + rightVec - forVec):POSITION.
+	
+	local sideVec is rfPos-lfPos+rbPos-lbPos.
+	local gradeVec is rfPos-rbPos+lfPos-lbPos.
+	
+	RETURN VCRS(gradeVec,sideVec):NORMALIZED.
+}

@@ -1,3 +1,4 @@
+RUNONCEPATH("0:/lib/Debug").
 RUNONCEPATH("0:/lib/Surface").
 
 parameter spd is 20.
@@ -15,10 +16,6 @@ set STEERINGMANAGER:ROLLCONTROLANGLERANGE to 180.
 LOCK WHEELTHROTTLE TO motor.
 LOCK STEERING to steerLock.
 
-function NPrint {
-	parameter s,n.
-	PRINT s + ": " + ROUND(n,2).
-}
 WHEN terminal:input:haschar THEN {
 	local ch is terminal:input:getchar().
 	if ch = "w" {
@@ -55,12 +52,12 @@ UNTIL exit {
 	else { 
 		set motor to 0. 
 	}
+
+	local ld is LookDir().
+	local sn is SurfaceNormal(ship, ld, 5, 10).
+	set steerLock to LOOKDIRUP(VXCL(sn,ld:VECTOR), sn).
 	
-	
-	//set steerLock to AdjDirByRoll(LookDir(),SurfaceRollVector(ship)).
-	set steerLock to HEADING(heading_of_vector(LookDir():VECTOR), SurfacePitch(ship),SurfaceRoll(ship)).
-	
-	WAIT 0.1.
+	WAIT 0.
 }
 
 SAS ON.
