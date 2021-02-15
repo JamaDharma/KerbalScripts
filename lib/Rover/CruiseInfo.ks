@@ -18,17 +18,25 @@ function CruiseCorrection{
 	return VANg(VXCL(ld:STARVECTOR, sn),ld:UPVECTOR).
 }
 
-local wpPath is "1:/CruiseRoute".
-function ReadCruiseRoute{
-	if EXISTS(wpPath)
-		return READJSON(wpPath).
-	else 
-		return list().
+function CruiseRouteStorage{
+	local wpPath is "1:/CruiseRoute".
+	function ReadCruiseRoute{
+		if EXISTS(wpPath)
+			return READJSON(wpPath).
+		else 
+			return list().
+	}
+	function WriteCruiseRoute{
+		parameter cr.
+		WRITEJSON(cr, wpPath).
+	}
+	function CleanCruiseRoute{
+		DELETEPATH(wpPath).
+	}
+	return lexicon(
+		"Read",ReadCruiseRoute@,
+		"Write",WriteCruiseRoute@,
+		"Clean",CleanCruiseRoute@
+	).
 }
-function WriteCruiseRoute{
-	parameter cr.
-	WRITEJSON(cr, wpPath).
-}
-function CleanCruiseRoute{
-	DELETEPATH(wpPath).
-}
+
