@@ -35,10 +35,6 @@ UNTIL pitchControl:StateControl() {
 ON (ALTITUDE > alt45) {
 	NPrint("Angle from up",pitchLock).
 }
-ON (STAGE:LIQUIDFUEL < 1) {
-	set thrustLevel to 0.
-	PRINT "Engines off.".
-}
 UNTIL ALT:APOAPSIS > 75000 {
 	set pitchLock to ProgradePitch().
 	WAIT 0.
