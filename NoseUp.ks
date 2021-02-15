@@ -45,11 +45,7 @@ local function MakeThrustControl{
 }
 
 SET SHIP:CONTROL:PILOTMAINTHROTTLE TO 0.
-STAGE.
 BRAKES ON.
-//SAS ON.
-WAIT 0.5.
-set SASMODE to "RADIALOUT".
 
 local ed is EnergyDeficit().
 local tc is MakeThrustControl().
@@ -59,7 +55,9 @@ UNTIL  ed <= 0 {
 	WAIT 0.
 }
 SET SHIP:CONTROL:PILOTMAINTHROTTLE TO 0.
-UNTIL false {
-	set ed to EnergyDeficit().
-	WAIT 0.2.
-}
+
+WAIT UNTIL VANG(ship:FACING:VECTOR,UP:VECTOR) < 30.
+SAS ON.
+WAIT 0.1.
+set SASMODE to "RADIALOUT".
+
