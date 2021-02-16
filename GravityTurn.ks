@@ -15,6 +15,7 @@ PRINT "Calculating ascent profile...".
 local profile is CalculateAscentProfile(alt45).
 PRINT "Profile calculated!".
 local pitchControl is MakeProfileControl(profile). 
+Terminal:input:CLEAR.
 PRINT "Press any key to proceed".
 WaitKey().
 
