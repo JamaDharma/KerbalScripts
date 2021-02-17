@@ -1,4 +1,6 @@
 RUNONCEPATH("0:/lib/Debug").
+parameter margin is 1.
+
 local function TRetro{
 	return TARGET:VELOCITY:ORBIT - SHIP:VELOCITY:ORBIT.
 }
@@ -9,7 +11,7 @@ function MeetUpControl {
 	local retroV is TRetro().
 	local spd is retroV:MAG.
 	local vAngle is VANG(-TARGET:DIRECTION:VECTOR, retroV).
-	local dist is COS(vAngle)*TARGET:DISTANCE.
+	local dist is COS(vAngle)*TARGET:DISTANCE-margin.
 	
 	local accel is MAXTHRUST/MASS.
 	local brakingTime is spd/accel.
