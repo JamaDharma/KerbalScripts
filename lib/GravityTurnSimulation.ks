@@ -77,7 +77,8 @@ function FallFrom{
 	local upV is (p - ship:BODY:POSITION):NORMALIZED.
 	local ang is VANG(spdV,upV).
 
-	local gts is MakeGravTSim({parameter vx,vz,cml. return vz >= 0.},-MAXTHRUST).
-	return gts(timeStep,spdV:MAG,ang).
+	local gts is MakeGravTSim(EnginesConsumption(),-MAXTHRUST).
+	return gts:VelAng({parameter vx,vz,cml. return vz >= 0.},
+		timeStep, spdV:MAG, ang).
 }
 
