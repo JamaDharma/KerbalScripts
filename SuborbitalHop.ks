@@ -6,7 +6,6 @@ function MakeImpactControl{
 	parameter tgt.
 	local impactTime is TragectoryImpactTime().
 	local impErrV is ImpactErrorVector().
-	local generalDirection is tgt:POSITION-ship:POSITION.
 	
 	local function ImpactErrorVector{
 		local impP is GeopositionAt(ship,impactTime):POSITION.
@@ -16,6 +15,8 @@ function MakeImpactControl{
 	}
 	
 	local function SteeringVector{
+		if impErrV:MAG < tgt:DISTANCE/64
+			return VXCL(UP:VECTOR,impErrV).
 		return impErrV:NORMALIZED + UP:VECTOR.
 	}
 	
@@ -27,7 +28,7 @@ function MakeImpactControl{
 		set impactTime to TragectoryImpactTime(impactTime).
 		if (impactTime-time)<10 set impactTime to time+10.
 		set impErrV to ImpactErrorVector().
-		return generalDirection*SteeringVector() <= 0.
+		return ship:FACING:VECTOR*SteeringVector() <= 0.
 	}
 	
 	return lexicon(
@@ -53,7 +54,8 @@ local function BurnControl{
 	
 	until impactControl:StateControl() {
 		set steeringLock to  impactControl:SteerControl().
-		set SHIP:CONTROL:PILOTMAINTHROTTLE to impactControl:BurnLeft()*MASS/MAXTHRUST.
+		set SHIP:CONTROL:PILOTMAINTHROTTLE to 
+			impactControl:BurnLeft()*MASS/MAXTHRUST.
 		WAIT 0.
 	}
 	
@@ -64,4 +66,9 @@ local function BurnControl{
 	UNLOCK STEERING.
 }
 
-BurnControl(GetTargetGeo()).
+parameter lat is 0, lng is 0.
+if lat<>0 and lng<>0{
+	BurnControl(BODY:GEOPOSITIONLATLNG(lat,lng)).
+}else {
+	BurnControl(GetTargetGeo()).
+}
