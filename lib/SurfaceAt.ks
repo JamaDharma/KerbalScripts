@@ -13,6 +13,17 @@ FUNCTION ground_track {  //returns the geocoordinates of the ship at a given tim
   RETURN LATLNG(posLATLNG:LAT,newLNG).
 }
 
+function BodyPositionAt {  //returns the new position of point  at a given time(UTs) due to planetary rotation over time
+  parameter pos,posTime.
+  LOCAL localBody IS SHIP:BODY.
+  LOCAL posLATLNG IS localBody:GEOPOSITIONOF(pos).
+  LOCAL timeDif IS posTime - TIME:SECONDS.
+  LOCAL longitudeShift IS rotationalDir * timeDif:SECONDS * CONSTANT:RADTODEG.
+  LOCAL newLNG IS MOD(posLATLNG:LNG + longitudeShift ,360).
+  IF newLNG < - 180 { SET newLNG TO newLNG + 360. }
+  IF newLNG > 180 { SET newLNG TO newLNG - 360. }
+  RETURN LATLNG(posLATLNG:LAT,newLNG):POSITION.
+}
 
 function GeopositionAt{
 	PARAMETER obj, objTime.

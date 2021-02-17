@@ -9,6 +9,12 @@ function GetUpVec {
 	return (p1:POSITION - p1:BODY:POSITION):NORMALIZED.
 }
 
+function GlobeDistance{
+	parameter gp1, gp2.
+	local lb is gp1:BODY.
+	local ang is VANG(gp1:POSITION-lb:POSITION,gp2:POSITION-lb:POSITION).
+	return lb:RADIUS*CONSTANT:DegToRad*ang.
+}
 function NormalizeGP{
 	parameter gp.
 	return (gp:POSITION - BODY:POSITION):NORMALIZED*BODY:RADIUS.
