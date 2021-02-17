@@ -3,7 +3,7 @@ RUNONCEPATH("0:/lib/Defaults").
 RUNONCEPATH("0:/lib/Targeting").
 RUNONCEPATH("0:/lib/SurfaceAt").
 RUNONCEPATH("0:/lib/BurnExecutor").
-RUNONCEPATH("0:/lib/Search/BinarySearch").
+RUNONCEPATH("0:/lib/Search/GoldenSearch").
 RUNONCEPATH("0:/lib/GravityTurnSimulation").
 
 local targetHeight is 75.
@@ -50,37 +50,37 @@ WAIT UNTIL VANG(SRFRETROGRADE:VECTOR,UP:VECTOR) < 45.
 run TerminalGuidance.
 
 //functions
-local function SeparationNrm{
+local function Separation{
 	parameter tT,tGP.
-	return NormalizeGP(GeopositionAt(ship, tT)) - NormalizeGP(tGP).
+	return GlobeDistance(GeopositionAt(ship, tT),tGP).
 }
 local function TimeOnTarget{
 	parameter tT, tGP.
 
-	BSearch(
-		{ return SeparationNrm(tT, tGP):SQRMAGNITUDE.},
-		MakeBSComponent( 1, 0.1, {parameter dT. set tT to tT + dT.})
+	GSearch(
+		{ return Separation(tT, tGP).},
+		MakeSearchComponent( 1, 0.1, {parameter dT. set tT to tT + dT.})
 	).
 
 	return tT.
 }
 local function EndHeight{
-	return AltitudeAt(burnTime)-tgt:TERRAINHEIGHT-info[2].
+	return AltitudeAt(burnTime)-tgt:TERRAINHEIGHT-info["Z"].
 }
 local function UpdateInfo{
 	parameter dt.
 	
 	set targetTime to TimeOnTarget(targetTime,tgt).
-	set burnTime to targetTime - info[0].
+	set burnTime to targetTime - info["T"].
 	set info to FallFrom(burnTime, dt).
 	set endH to EndHeight().
 }
 local function PrintInfo{
-	NPrint("t - braking time",info[0]).
-	NPrint("x - braking distance",info[1]).
-	NPrint("z - drop",info[2]).
+	NPrint("t - braking time",info["T"]).
+	NPrint("x - braking distance",info["X"]).
+	NPrint("z - drop",info["Z"]).
 	NPrint("Final height",endH).
-	NPrint("Final distance",SeparationNrm(targetTime, tgt):MAG).
+	NPrint("Final distance",Separation(targetTime, tgt)).
 	PRINT "----------------------".
 }
 local function CorrectionBurnNeeded{
@@ -99,17 +99,17 @@ local function MakeCorrector{
 }
 local function SetCorrection{
 	parameter prg.
-	BSearch(
+	GSearch(
 		{ return (EndHeight() - targetHeight)^2.},
-		MakeBSComponent( 1, 0.1, 
+		MakeSearchComponent( 1, 0.1, 
 		{ parameter dX. set NEXTNODE:PROGRADE to NEXTNODE:PROGRADE+dX. })
 	).
 
 	set NEXTNODE:PROGRADE to (prg + NEXTNODE:PROGRADE)/2.
 	
-	BSearch(
-		{ return SeparationNrm(targetTime, tgt):SQRMAGNITUDE.},
-		MakeBSComponent( 1, 0.1, 
+	GSearch(
+		{ return Separation(targetTime, tgt).},
+		MakeSearchComponent( 1, 0.1, 
 		{ parameter dX. set NEXTNODE:NORMAL to NEXTNODE:NORMAL+dX. })
 	).
 	
