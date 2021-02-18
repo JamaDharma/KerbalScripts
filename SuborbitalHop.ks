@@ -61,7 +61,7 @@ function MakeImpactControl{
 	local steerV is steerControl:UpdateSteering(impactTime,impErrV).
 	
 	local function ImpactErrorVector{
-		local impP is GeopositionAt(ship,impactTime):ALTITUDEPOSITION(TERRAINHEIGHT).
+		local impP is GeopositionAt(ship,impactTime):ALTITUDEPOSITION(tgtAlt).
 		local tgtP is tgt:POSITION.
 		local errV is tgtP-impP.
 		return errV.
@@ -106,7 +106,7 @@ local function BurnControl{
 	until impactControl:StateControl() {
 		set steeringLock to  impactControl:SteerControl().
 		set SHIP:CONTROL:PILOTMAINTHROTTLE to 
-			impactControl:BurnLeft()*MASS/MAXTHRUST.
+			impactControl:BurnLeft()*MASS/MAXTHRUST+0.001.
 		WAIT 0.
 	}
 	
