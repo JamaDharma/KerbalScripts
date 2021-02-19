@@ -12,10 +12,12 @@ function MakeNavigationControl{
 		AddWP(gpList[i]).
 	}
 	
-	
-	function StepScale{
+	local stepSizeValue is 1000.
+	function StepSize{
 		parameter scl is 0.
-		return 1000.
+		if scl > 0
+			set stepSizeValue to scl.
+		return stepSizeValue.
 	}
 	
 	function AddWP{
@@ -36,22 +38,22 @@ function MakeNavigationControl{
 		
 		local i is curWp + di.
 		
-		if i < 0 or i  return false.
+		if i < 0 or i >= wpts:LENGTH return false.
 		
-		wpts[curWp]:Color(GREEN).
+		wpts[curWp]:Highlighted(false).
 		set curWp to i.
-		wpts[curWp]:Color(RED).
+		wpts[curWp]:Highlighted(true).
 		return true.
 	}
 	function MoveF{
 		parameter sign.
 		local wp is wpts[curWp].
-		wp:MOVE(wp:Dir():FOREVECTOR,StepScale()*sign).
+		wp:MOVE(wp:Dir():FOREVECTOR,StepSize()*sign).
 	}
 	function MoveR{
 		parameter sign.
 		local wp is wpts[curWp].
-		wp:MOVE(wp:Dir():STARVECTOR,StepScale()*sign).
+		wp:MOVE(wp:Dir():STARVECTOR,StepSize()*sign).
 	}
 	function MakeGeoList{
 		local result is list().
@@ -60,11 +62,24 @@ function MakeNavigationControl{
 		}
 		return result.
 	}
+	local shownState is TRUE.
+	function Shown{
+		parameter s is shownState.
+		if s <> shownState {
+			set shownState to s.
+			for wp in wpts {
+				wp:Shown(shownState).
+			}
+		}
+		return shownState.
+	}
 	local this is lexicon(
 		"SwitchWP",SwitchWP@,
-		"AddWP"	,AddWP@,
-		"MoveF"	,MoveF@,
-		"MoveR"	,MoveR@,
+		"AddWP",AddWP@,
+		"StepSize",StepSize@,
+		"MoveF",MoveF@,
+		"MoveR",MoveR@,
+		"Shown",Shown@,
 		"GeoList",MakeGeoList@
 	).
 	return this.
