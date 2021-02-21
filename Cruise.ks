@@ -1,6 +1,7 @@
 RUNONCEPATH("0:/lib/Debug").
 RUNONCEPATH("0:/lib/Surface").
-RUNONCEPATH("0:/lib/Ship/RoverCruiseInfo").
+RUNONCEPATH("0:/lib/Rover/CruiseInfo").
+RUNONCEPATH("0:/lib/Rover/NavigationControl").
 
 parameter spd is 20.
 PRINT "Cruise speed: " + spd.
@@ -8,7 +9,8 @@ PRINT "Cruise speed: " + spd.
 local pitchCorrection is ReadCruiseCorrection().
 
 local function MakeRouteWheelControl{
-	parameter route is ReadCruiseRoute().
+	parameter routeStorage is CruiseRouteStorage().
+	parameter route is routeStorage:Read().
 	if route:LENGTH = 0 
 		return lexicon(
 			"CurrentTarget",{ return ship:GEOPOSITION.},
@@ -29,7 +31,7 @@ local function MakeRouteWheelControl{
 				return.
 			}
 			set currT to route[0].
-			WriteCruiseRoute(route).
+			routeStorage:Write(route).
 			PRINT "Waypoint passed. Route updated.".
 		}
 		set SHIP:CONTROL:PILOTWHEELSTEERTRIM 
@@ -39,7 +41,7 @@ local function MakeRouteWheelControl{
 	function Finalize{
 		set SHIP:CONTROL:PILOTWHEELSTEERTRIM to 0.
 		BRAKES ON.
-		CleanCruiseRoute().
+		routeStorage:Clean().
 		PRINT "Last waypoint.".
 		set this["WheelControl"] to {}.
 	}
@@ -50,7 +52,9 @@ CLEARSCREEN.
 
 set motor to 1.
 set steerLock to SRFPROGRADE.
-local wc is MakeRouteWheelControl().
+local rs is CruiseRouteStorage().
+local nc is 0.
+local wc is MakeRouteWheelControl(rs).
 BRAKES OFF.
 SAS OFF.
 
@@ -71,6 +75,16 @@ WHEN terminal:input:haschar THEN {
 		NPrint("CruiseCorrection updated",pitchCorrection).
 	} else if ch = "i" {		
 		NPrint("Distance to next WP",wc:CurrentTarget():DISTANCE).
+	} else if ch = "g" {	
+		local vsb is true.
+		if nc <> 0 {
+			set vsb to not nc:Shown().
+			nc:Shown(false).
+		}
+		local l is rs:Read().
+		set nc to MakeNavigationControl(l).
+		nc:SwitchWP(1-l:LENGTH).
+		nc:Shown(vsb).
 	}
 	NPrint("Speed",spd).
 	return true.

@@ -3,6 +3,7 @@ RUNONCEPATH("0:/lib/Rover/CruiseInfo").
 
 function MakeNavigationGUI{
 	parameter nc.
+	local routeStorage is CruiseRouteStorage().
 	local stepSizeField is 0.
 	LOCAL gui IS GUI(200).
 	local function FillMain{
@@ -15,7 +16,7 @@ function MakeNavigationGUI{
 		LOCAL saveB is lo:ADDBUTTON("Save").
 		set saveB:ONCLICK to {
 			local lst is nc:GeoList().
-			WriteCruiseRoute(lst).
+			routeStorage:Write(lst).
 		}.
 	}
 	FillMain(gui:ADDHLAYOUT()).
