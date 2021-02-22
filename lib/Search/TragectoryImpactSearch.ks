@@ -13,9 +13,26 @@ local function AltAtP{
 
 local function AltAtT{
 	parameter t.
-	return AltAtP(POSITIONAT(SHIP,t)).
+	return AltAtP().
 }
 
+local function SeaAltAtT{
+	parameter t.
+	return (POSITIONAT(SHIP,t)-BODY:POSITION):MAG-BODY:RADIUS.
+}
+
+function TragectoryAltitudeTime{
+	parameter aboveGrnd is 0.
+	parameter minSepTime is time.
+
+	BSearch(
+		{return aboveGrnd-SeaAltAtT(minSepTime).},
+		MakeSearchComponent( 1, 0.1, 
+		{ parameter dT. set minSepTime to minSepTime + dT.})
+	).
+	
+	return minSepTime.
+}
 function TragectoryImpactTime{
 	parameter minSepTime is time.
 	parameter aboveGrnd is 100.

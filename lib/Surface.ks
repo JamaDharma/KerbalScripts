@@ -6,14 +6,21 @@ function GetPitch{
 }
 function GetUpVec {
 	PARAMETER p1.
-	return (p1:POSITION - p1:BODY:POSITION):NORMALIZED.
+	return (p1:ALTITUDEPOSITION(0) - p1:BODY:POSITION):NORMALIZED.
 }
-
+function GlobeAngle{
+	parameter gp1, gp2.
+	local br is gp1:BODY:POSITION.
+	return VANG(gp1:ALTITUDEPOSITION(0)-br,	gp2:ALTITUDEPOSITION(0)-br).
+}
 function GlobeDistance{
 	parameter gp1, gp2.
-	local lb is gp1:BODY.
-	local ang is VANG(gp1:POSITION-lb:POSITION,gp2:POSITION-lb:POSITION).
-	return lb:RADIUS*CONSTANT:DegToRad*ang.
+	return gp1:BODY:RADIUS*CONSTANT:DegToRad*GlobeAngle(gp1, gp2).
+}
+function GlobeAddDistance{
+	parameter gp1, dst.
+	local aDiff is dst/(gp1:BODY:RADIUS*CONSTANT:DegToRad).
+	return gp1:BODY:GEOPOSITIONLATLNG(gp1:LAT,gp1:LNG+aDiff).
 }
 function NormalizeGP{
 	parameter gp.
