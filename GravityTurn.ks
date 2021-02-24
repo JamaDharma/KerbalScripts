@@ -12,6 +12,7 @@ set pitchLock to 0.
 CORE:PART:CONTROLFROM().
  
 PRINT "Calculating ascent profile...".
+PRINT "Goal is 45 at "+alt45.
 local profile is CalculateAscentProfile(alt45).
 PRINT "Profile calculated!".
 local pitchControl is MakeProfileControl(profile). 
