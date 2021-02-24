@@ -16,7 +16,7 @@ function MakeTerminalControl{
 		
 		local hgh is ALTITUDE - tgtH.
 		local vVel is -VERTICALSPEED.
-		local vAcc is shipAcc*cos(ang) - grv.
+		local vAcc is MAX(0.001, shipAcc*cos(ang) - grv).
 		local vbT is vVel/vAcc+1.
 		local vbD is vVel*vbT/2.
 		local vK is vbD/hgh.

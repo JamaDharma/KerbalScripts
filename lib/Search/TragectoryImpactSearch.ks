@@ -22,16 +22,16 @@ local function SeaAltAtT{
 }
 
 function TragectoryAltitudeTime{
-	parameter aboveGrnd is 0.
-	parameter minSepTime is time.
-
-	BSearch(
-		{return aboveGrnd-SeaAltAtT(minSepTime).},
-		MakeSearchComponent( 1, 0.1, 
-		{ parameter dT. set minSepTime to minSepTime + dT.})
-	).
+	parameter aboveSea is 0.
+	parameter altTime is time.
 	
-	return minSepTime.
+	if ALTITUDE > aboveSea BSearch(
+			{return aboveSea-SeaAltAtT(altTime).},
+			MakeSearchComponent( 1, 0.1, 
+			{ parameter dT. set altTime to altTime + dT.})
+		).
+	
+	return altTime.
 }
 function TragectoryImpactTime{
 	parameter minSepTime is time.
