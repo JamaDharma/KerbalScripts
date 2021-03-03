@@ -75,16 +75,16 @@ local function TaretPitch{
 local ss is FALSE.
 local sf is TRUE.
 function StopControl {
-	parameter margin is -50.
+	parameter margin is 20.
 	local vCmp is VCRS(UP:VECTOR, FACING:VECTOR):MAG.
-	local accel is vCmp*(ship:MAXTHRUSTAT(1)/MASS-currAcc/2).
+	local accel is vCmp*(ship:MAXTHRUSTAT(1)/MASS-currAcc/2).//currAcc is negative
 	local brakingTime is GROUNDSPEED/accel.
-	local brakingDst is brakingTime*GROUNDSPEED/2.
+	local brakingDst is brakingTime*(GROUNDSPEED-margin)/2.
 	local padP is pad:ALTITUDEPOSITION(ALTITUDE).
 	local dist is padP*SRFPROGRADE:VECTOR.
 	
 	
-	IF sf AND dist-margin < brakingDst {
+	IF sf AND dist < brakingDst {
 		set ss to TRUE.
 	}
 	if sf AND ship:VELOCITY:SURFACE*padP:NORMALIZED < 20 {

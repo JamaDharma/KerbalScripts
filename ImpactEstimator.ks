@@ -1,4 +1,5 @@
 RUNONCEPATH("0:/lib/Debug").
+RUNONCEPATH("0:/lib/Storage").
 RUNONCEPATH("0:/lib/SurfaceAt").
 RUNONCEPATH("0:/lib/Search/TragectoryImpactSearch").
 RUNONCEPATH("0:/lib/Atmosphere").
@@ -8,7 +9,8 @@ local targetHeight is 300.
 global pad is BODY:GEOPOSITIONLATLNG(-0.0972077889151947,-74.5576774701971).
 local chainLink is PROCESSOR("Slave2"):CONNECTION.
 
-local dfc is MakeDragForceCalculator(KerbinAT,0.028).
+local dk is ShipTypeStorage():GetValue("DragK").
+local dfc is MakeDragForceCalculator(KerbinAT,dk).
 local sim is MakeAtmEntrySim(dfc).
 
 local endGP is 0.

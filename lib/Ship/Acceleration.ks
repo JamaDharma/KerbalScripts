@@ -57,6 +57,34 @@ function MakeAccelerometerSimple{
 		"AccV", { return vAcc.}
 	).
 }
+function MakeAccelerometerVSimple{
+
+	local lastSpd is VERTICALSPEED.
+	local lastUpd is time.
+
+	local vAcc is 0.
+		
+	local function UpdateV {
+		local cSpd is VERTICALSPEED.
+		local cUpd is time.
+		
+		local dt is 	(cUpd - lastUpd):SECONDS.
+		local dv is cSpd - lastSpd.
+		local cAcc is dv/dt.
+		
+		set lastSpd to cSpd.
+		set lastUpd to cUpd.
+		set vAcc to (3*vAcc+cAcc)/4.
+
+		return vAcc.
+	}
+	
+	return lexicon(
+		"UpdateV", UpdateV@,
+		"AccV", { return vAcc.}
+	).
+}
+
 function MakeAccelerometerV{
 	local engLst is ListActiveEngines().
 

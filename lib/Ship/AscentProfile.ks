@@ -51,7 +51,7 @@ function CalculateAscentProfile{
 	local endState is gts:VelAng(SpeedCheck(200),1,startSpd,90-startAng,
 		list(startTime,0,startHeight)).
 	
-	local points is list(25,50,75,100,125,150,175,200).
+	local points is list(5,10,15,20,30,40,50,65,80,100,125,150,175,200).
 	local itr is points:REVERSEITERATOR.
 	itr:NEXT().
 	local profile is stack().
