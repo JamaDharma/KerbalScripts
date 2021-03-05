@@ -71,7 +71,10 @@ local function UpdateInfo{
 	parameter dt.
 	
 	set targetTime to TimeOnTarget(targetTime,tgt).
-	set burnTime to targetTime - info["T"].
+	local spdV is VELOCITYAT(ship,targetTime):SURFACE.
+	local upV is (POSITIONAT(ship, targetTime) - ship:BODY:POSITION).
+	local gs is VXCL(upV,spdV):MAG.
+	set burnTime to targetTime - info["X"]/gs.
 	set info to FallFrom(burnTime, dt).
 	set endH to EndHeight().
 }
