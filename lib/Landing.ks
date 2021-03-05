@@ -1,14 +1,18 @@
 RUNONCEPATH("0:/lib/Debug").
 RUNONCEPATH("0:/lib/Search/TragectoryImpactSearch").
 
+local bm is body:mu.
+local br is body:radius.
+local bgs is bm/(br*br).
+
 local function Gravity {
-	return body:mu/body:radius^2.
+	local cr is br + ALTITUDE.
+	return bm/(cr*cr).
 }
 
-local function VAccel{
-	local vAngle is VANG(UP:VECTOR, SRFRETROGRADE:VECTOR).
-	local vCmp is COS(vAngle).
-	return vCmp*MAXTHRUST/MASS - Gravity().
+local function VerticalAcceleration{
+	local cosA is UP:VECTOR*FACING:VECTOR.
+	return cosA*MAXTHRUST/MASS - Gravity().
 }
 
 function SetUpTrigger{
@@ -20,13 +24,14 @@ function SetUpTrigger{
 
 local bounds_box is ship:bounds.
 local bkv is -ship:FACING:VECTOR.
-local altCorrection is bounds_box:FURTHESTCORNER(bkv):MAG-(SHIP:ROOTPART:POSITION*bkv).
+local altCorrection is (bounds_box:FURTHESTCORNER(bkv)-SHIP:ROOTPART:POSITION)*bkv.
 
 function RealAltitude {
 	RETURN ALT:RADAR-altCorrection.
 }
 function RealAltitudeRay {
-	RETURN bounds_box:BOTTOMALTRADAR.
+	parameter margin is 0.
+	RETURN bounds_box:BOTTOMALTRADAR - margin.
 }
 
 		
@@ -56,7 +61,7 @@ function ImpactAltAdj{
 local startBraking to FALSE.
 function SuicideBurnControl {
 	parameter landingSpeed,rAlt,thrustSetter.
-	local accel is VAccel().
+	local accel is VerticalAcceleration().
 	local brakingDst is (VERTICALSPEED^2 - landingSpeed^2)/2/accel.
 	local brakingTime is ABS(VERTICALSPEED + landingSpeed)/accel.
 
