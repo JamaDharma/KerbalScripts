@@ -1,3 +1,4 @@
+RUNONCEPATH("0:/lib/Debug").
 RUNONCEPATH("0:/lib/Ship/Engines").
 
 function MakeGravTSim{
@@ -75,7 +76,7 @@ function FallFrom{
 	local p is POSITIONAT(ship, t).
 	local spdV is VELOCITYAT(ship,t):SURFACE.
 	local upV is (p - ship:BODY:POSITION):NORMALIZED.
-	local ang is VANG(spdV,upV).
+	local ang is 90 - VANG(spdV,upV).
 
 	local gts is MakeGravTSim(EnginesConsumption(),-MAXTHRUST).
 	return gts:VelAng({parameter vx,vz,cml. return vz >= 0.},

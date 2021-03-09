@@ -13,14 +13,15 @@ SET SHIP:CONTROL:PILOTMAINTHROTTLE TO 0.
 local tgt is GetTargetGeo().
 if HASNODE REMOVE NEXTNODE.
 
-local targetTime is TimeOnTarget(time+300,tgt).
+local targetTime is TimeOnTarget(time,tgt).
 local burnTime is targetTime-HorVelAt(targetTime)[1]:MAG*MASS/MAXTHRUST/2.
 local info is FallFrom(burnTime,10).
 local endH is EndHeight().
 UpdateInfo(10).
 PrintInfo().
 
-CorrectionBurn().
+if targetTime-time > 250
+	CorrectionBurn().
 
 UpdateInfo(1).
 PrintInfo().
@@ -47,7 +48,8 @@ WAIT UNTIL burnTime < time.
 SetThrust(1).
 WAIT UNTIL VANG(SRFRETROGRADE:VECTOR,UP:VECTOR) < 45.
 
-run TerminalGuidance.
+//run TerminalGuidance.
+run LandingVR.
 
 //functions
 local function Separation{
@@ -62,10 +64,12 @@ local function TimeOnTarget{
 		MakeSearchComponent( 1, 0.1, {parameter dT. set tT to tT + dT.})
 	).
 
-	return tT.
+	if tT - time > 1 return tT.
+	
+	return TimeOnTarget(tT+ship:ORBIT:PERIOD).
 }
 local function EndHeight{
-	return AltitudeAt(burnTime)-tgt:TERRAINHEIGHT-info["Z"].
+	return AltitudeAt(burnTime)-tgt:TERRAINHEIGHT+info["Z"].
 }
 local function UpdateInfo{
 	parameter dt.
@@ -81,7 +85,7 @@ local function UpdateInfo{
 local function PrintInfo{
 	NPrint("t - braking time",info["T"]).
 	NPrint("x - braking distance",info["X"]).
-	NPrint("z - drop",info["Z"]).
+	NPrint("z - drop",-info["Z"]).
 	NPrint("Final height",endH).
 	NPrint("Final distance",Separation(targetTime, tgt)).
 	PRINT "----------------------".
