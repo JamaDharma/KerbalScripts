@@ -15,25 +15,33 @@ function GeneralStorage{
 		parameter key.
 		return storage[key].
 	}
-	
+	function GetValueSafe{
+		parameter key, result.
+		if storage:HASKEY(key)
+			set result to storage[key].
+		return result.
+	}
 	function SetValue{
 		parameter key, val.
 		set storage[key] to val.
+	}
+	function RemoveValue{
+		parameter key.
+		if storage:HASKEY(key)
+			storage:REMOVE(key).
 	}
 	
 	function SaveStorage{
 		WRITEJSON(storage, filePath).
 	}
-	function DeleteStorage{
-		if EXISTS(filePath) 
-			DELETEPATH(filePath).
-	}
+
 	
 	return lexicon(
 		"GetValue",GetValue@,
+		"GetValueSafe",GetValueSafe@,
 		"SetValue",SetValue@,
-		"Save",SaveStorage@,
-		"Delete",DeleteStorage@
+		"RemoveValue",DeleteValue@,
+		"Save",SaveStorage@
 	).
 }
 function ShipTypeStorage{

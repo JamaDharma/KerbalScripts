@@ -66,7 +66,7 @@ local function TimeOnTarget{
 
 	if tT - time > 1 return tT.
 	
-	return TimeOnTarget(tT+ship:ORBIT:PERIOD).
+	return TimeOnTarget(tT+ship:ORBIT:PERIOD, tGP).
 }
 local function EndHeight{
 	return AltitudeAt(burnTime)-tgt:TERRAINHEIGHT+info["Z"].
