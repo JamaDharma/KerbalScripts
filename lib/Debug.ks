@@ -1,3 +1,7 @@
+function Notify {
+	parameter text, clr, dTime is 5, textSize is 40.
+	HUDTEXT(text, dTime, 2, textSize, clr, true).
+}
 function NPrint {
 	parameter s,n.
 	parameter p is 3.

@@ -40,7 +40,7 @@ function GeneralStorage{
 		"GetValue",GetValue@,
 		"GetValueSafe",GetValueSafe@,
 		"SetValue",SetValue@,
-		"RemoveValue",DeleteValue@,
+		"RemoveValue",RemoveValue@,
 		"Save",SaveStorage@
 	).
 }

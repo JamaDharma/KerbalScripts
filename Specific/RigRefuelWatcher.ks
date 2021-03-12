@@ -62,16 +62,18 @@ local function OnTankerDisconnected{
 
 
 UNTIL false {
-	WAIT 10.
+	WAIT 3.
 	UpdateElements().
 	if tanker:LENGTH > 0 {
 		if not storage:GetValue(refuelMode) {
+			Notify("Tanker detected! Switching to refuel mode.",BLUE).
 			OnTankerConnected().
 			storage:SetValue(refuelMode, true).
 			storage:Save().
 		}
 	} else {
 		if storage:GetValue(refuelMode) {
+			Notify("Tanker left! Switching to hog mode.",BLUE).
 			OnTankerDisconnected().
 			storage:SetValue(refuelMode, false).
 			storage:Save().
