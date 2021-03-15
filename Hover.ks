@@ -9,8 +9,14 @@ SAS OFF.
 LOCK STEERING TO LOOKDIRUP(UP:VECTOR,TARGET:FACING:VECTOR).
 function ToInput{
 	parameter val.
+	local aval is ABS(val).
+	
+	if aval > 0.001 and aval < 0.05 {
+		if val < 0 return -0.05.
+		else return 0.05.
+	}
+	
 	return val.
-	return MAX(-1,MIN(1,val)).
 }
 function TControl{
 	parameter pos, vel, dir, accel.
@@ -21,7 +27,7 @@ function TControl{
 	NPrint("dist",dist).
 	NPrint("spd",spd).
 	
-	if ABS(dist) < 0.3 return -spd/accel.
+	if ABS(dist) < 0.1 return -spd/accel.
 	
 	local tt is dist/spd.
 	if  tt < 0 or tt > 60 return dist.
@@ -43,6 +49,7 @@ until false{
 	WAIT 0.
 	
 	local tpv is VXCL(UP:VECTOR, TARGET:POSITION).
+	if tpv:MAG < 0.1 set hgh to hgh - 0.1.
 	local svv is VXCL(UP:VECTOR, ship:VELOCITY:SURFACE).
 	local shipAcc is tThrust/MASS.
 	
