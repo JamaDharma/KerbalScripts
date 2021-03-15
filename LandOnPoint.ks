@@ -136,12 +136,17 @@ local function CorrectionBurn{
 	
 	if CorrectionBurnNeeded() {
 		local corrector is MakeCorrector().
-		until ABS(endH-targetHeight) < targetHeight/3 {
+		terminal:input:CLEAR().
+		PRINT "Calculating correction burn, press any key to skip".
+		until ABS(endH-targetHeight) < targetHeight/3 or terminal:input:HASCHAR {
 			corrector().
+			UpdateInfo(1).
 			UpdateInfo(1).
 			PrintInfo().
 		}
 		SAS OFF.
+		PRINT "Executing burn".
+		WAIT 1.
 		BurnExecutor(NodeBurnControl(NEXTNODE)).
 	}
 
