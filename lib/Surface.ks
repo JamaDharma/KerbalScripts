@@ -8,19 +8,31 @@ function GetUpVec {
 	PARAMETER p1.
 	return (p1:ALTITUDEPOSITION(0) - p1:BODY:POSITION):NORMALIZED.
 }
+function LngRange{
+	parameter outrangeLNG.
+	LOCAL newLNG IS MOD(outrangeLNG ,360).
+	IF newLNG < - 180 { SET newLNG TO newLNG + 360. }
+	IF newLNG > 180 { SET newLNG TO newLNG - 360. }
+	return newLNG.
+}
 function GlobeAngle{
 	parameter gp1, gp2.
-	local br is gp1:BODY:POSITION.
-	return VANG(gp1:ALTITUDEPOSITION(0)-br,	gp2:ALTITUDEPOSITION(0)-br).
+	local bp is gp1:BODY:POSITION.
+	return VANG(gp1:ALTITUDEPOSITION(0)-bp,	gp2:ALTITUDEPOSITION(0)-bp).
+}
+local function PerDegree{
+	parameter b, h.
+	return CONSTANT:DegToRad*(b:RADIUS+h).
 }
 function GlobeDistance{
-	parameter gp1, gp2.
-	return gp1:BODY:RADIUS*CONSTANT:DegToRad*GlobeAngle(gp1, gp2).
+	parameter gp1, gp2, hgh is 0.
+	return PerDegree(gp1:BODY,hgh)*GlobeAngle(gp1, gp2).
 }
+
 function GlobeAddDistance{
-	parameter gp1, dst.
-	local aDiff is dst/(gp1:BODY:RADIUS*CONSTANT:DegToRad).
-	return gp1:BODY:GEOPOSITIONLATLNG(gp1:LAT,gp1:LNG+aDiff).
+	parameter gp1, dst, hgh is 0.
+	local aDiff is dst/PerDegree(gp1:BODY,hgh).
+	return gp1:BODY:GEOPOSITIONLATLNG(gp1:LAT,LngRange(gp1:LNG+aDiff)).
 }
 function NormalizeGP{
 	parameter gp.
