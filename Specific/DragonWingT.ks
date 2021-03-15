@@ -20,22 +20,18 @@ function NuclearEngineTrigger{
 	}
 }
 
-function PitchByThrust{
-	parameter currP,tgtP,dev.
-	return (tgtP-currP)/dev.
-}
 
 function FlyToAlt{
 	parameter talt.
+	local vspid is PIDLOOP(0.05,0,1).
+	set vspid:SETPOINT to 150.
 	UNTIL ALT:APOAPSIS > talt {
-		set pitchLock to ProgradePitch().
-		set thrustLevel to PitchByThrust(pitchLock,20,5).
+		set pitchLock to MAX(0,MIN(20,ProgradePitch())).
+		set thrustLevel to vspid:UPDATE(TIME:SECONDS,VERTICALSPEED).
 		WAIT 0.
-	}
-
-	UNTIL  pitchLock < 1 or ALTITUDE > talt {
-		set thrustLevel to (talt - ALT:APOAPSIS)/1000.
-		WAIT 0.
+		CLEARSCREEN.
+		NPrint("pitchLock",pitchLock).
+		NPrint("thrustLevel",thrustLevel).		
 	}
 }
 
@@ -68,7 +64,7 @@ set pitchLock to 5.
 
 WAIT UNTIL GROUNDSPEED > 150.
 
-FlyToAlt(14000).
+FlyToAlt(16000).
 
 set thrustLevel to 1.
 UNTIL GROUNDSPEED > 1500 {
