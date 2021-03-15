@@ -128,7 +128,9 @@ local function PrepareForBurn{
 	UNLOCK STEERING.
 	
 	HUDTEXT("Timewarp.", 5, 2, 50, blue, true).
-	WARPTO(TIME:SECONDS + burn:ETA - burnTime/2 - 30).
+	local warpTime is TIME + burn:ETA - burnTime/2 - 30.
+	WARPTO(warpTime).
+	WAIT UNTIL TIME > warpTime.
 }
 
 function BurnExecutor{
