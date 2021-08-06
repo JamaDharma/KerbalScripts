@@ -5,7 +5,7 @@ RUNONCEPATH("0:/lib/Search/TragectoryImpactSearch").
 RUNONCEPATH("0:/lib/Atmosphere").
 RUNONCEPATH("0:/lib/AtmosphericEntry").
 
-local targetHeight is 300.
+local targetHeight is 500.
 global pad is BODY:GEOPOSITIONLATLNG(-0.0972077889151947,-74.5576774701971).
 local chainLink is PROCESSOR("Slave2"):CONNECTION.
 

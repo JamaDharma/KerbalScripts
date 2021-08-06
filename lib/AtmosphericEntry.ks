@@ -36,14 +36,7 @@ function MakeAtmEntrySim{
 	local function GravTStep{
 		parameter vx,vz.
 		parameter cml.
-		
-		//[0, 1, 2]
-		//[t, x, z]
-		set cml[0] to cml[0]+dt.
-		set cml[1] to cml[1]+vx*dt.
-		set cml[2] to cml[2]+vz*dt.
-		
-	
+
 		if condition(vx,vz,cml){
 			return lexicon(
 				"VX", vx,
@@ -53,6 +46,13 @@ function MakeAtmEntrySim{
 				"Z", cml[2]
 			).
 		}
+		
+		//[0, 1, 2]
+		//[t, x, z]
+		set cml[0] to cml[0]+dt.
+		set cml[1] to cml[1]+vx*dt.
+		set cml[2] to cml[2]+vz*dt.
+		
 		local br is (body:radius+cml[2]).
 		local bg is body:mu/(br*br).
 		local orbX is (vx+175).//175 is kerbin rotation

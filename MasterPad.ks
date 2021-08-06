@@ -1,6 +1,7 @@
 RUNONCEPATH("0:/lib/Debug").
 RUNONCEPATH("0:/lib/Unwieldy").
 RUNONCEPATH("0:/lib/SurfaceAt").
+RUNONCEPATH("0:/lib/ChuteTiming").
 RUNONCEPATH("0:/lib/Ship/Acceleration").
 RUNONCEPATH("0:/lib/Search/TragectoryImpactSearch").
 
@@ -72,38 +73,6 @@ local function TaretPitch{
 	return ptch+2*ang.
 }
 
-local ss is FALSE.
-local sf is TRUE.
-function StopControl {
-	parameter margin is 20.
-	local vCmp is VCRS(UP:VECTOR, FACING:VECTOR):MAG.
-	local accel is vCmp*(ship:MAXTHRUSTAT(1)/MASS-currAcc/2).//currAcc is negative
-	local brakingTime is GROUNDSPEED/accel.
-	local brakingDst is brakingTime*(GROUNDSPEED-margin)/2.
-	local padP is pad:ALTITUDEPOSITION(ALTITUDE).
-	local dist is padP*SRFPROGRADE:VECTOR.
-	
-	
-	IF sf AND dist < brakingDst {
-		set ss to TRUE.
-	}
-	if sf AND ship:VELOCITY:SURFACE*padP:NORMALIZED < 20 {
-		set sf to FALSE.
-	}
-	
-	NPRINT("Pad distance", dist).
-	NPRINT("Bracking distance", brakingDst).
-
-	IF ss AND sf {
-		SET SHIP:CONTROL:PILOTMAINTHROTTLE TO MAX(0.01,MIN(1,brakingDst/dist)).
-	} ELSE {
-		SET SHIP:CONTROL:PILOTMAINTHROTTLE TO 0.
-	}
-	return brakingDst/dist.
-}
-
-
-
 InverseControl().
 //set STEERINGMANAGER:ROLLCONTROLANGLERANGE to 180.	
 SAS OFF.
@@ -121,20 +90,27 @@ UNTIL GlobeDistance(pad,ship:GEOPOSITION)<10000 {
 	WAIT 0.
 }
 
-UNTIL ss {
+//test insert
+UNTIL GROUNDSPEED < 300 {
 	UpdateState().
 	set stl to HEADING(TargetHeading(),TaretPitch()).
-	StopControl().
 	WAIT 0.
 }
 
+local chuteDist is ChuteBrackingEstimate().
+local globeDist is GlobeDistance(pad,ship:GEOPOSITION).
+UNTIL globeDist  < chuteDist + GROUNDSPEED*2 {
+	set chuteDist to ChuteBrackingEstimate().
+	set globeDist to GlobeDistance(pad,ship:GEOPOSITION).
+	set stl to HEADING(TargetHeading(),0).
+	PRINT chuteDist. 
+	PRINT globeDist. 
+	WAIT 0.
+}
+
+WAIT UNTIL GlobeDistance(pad,ship:GEOPOSITION) < chuteDist.
 CHUTES ON.
-UNTIL not sf {
-	StopControl().
-	set stl to SRFPROGRADE.
-	WAIT 0.
-}
 
-PRINT "Landing dist " +GlobeDistance(pad,ship:GEOPOSITION).
-PRINT "Landing speed " +GROUNDSPEED.
+WAIT UNTIL ALTITUDE < 150.
+
 RUN LandingA.
