@@ -1,26 +1,24 @@
 RUNONCEPATH("0:/lib/Debug").
 RUNONCEPATH("0:/lib/Storage").
 RUNONCEPATH("0:/lib/SurfaceAt").
-RUNONCEPATH("0:/lib/Atmosphere").
+RUNONCEPATH("0:/lib/ChuteDeployment").
 RUNONCEPATH("0:/lib/AtmosphericEntry").
 
-local chuteDelay is 1.
-global pad is BODY:GEOPOSITIONLATLNG(-0.0972077889151947,-74.5576774701971).
+local calcMargin is 2.//looking to deploy from future state
+local marginStep is calcMargin/4+0.01.
+local pad is BODY:GEOPOSITIONLATLNG(-0.0972077889151947,-74.5576774701971).
 
 local dk is ShipTypeStorage():GetValue("DragK").
-local sdk is 0.06.//ShipTypeStorage():GetValue("ChuteDragK").
+local cdk is xlChuteK.//ShipTypeStorage():GetValue("ChuteDragK").
 local dfc is MakeDragForceCalculator(KerbinAT,dk).
-local sfc is MakeDragForceCalculator(KerbinAT,sdk).
+local sfc is MakeChuteForceCalculator(KerbinAT,dk,dk+cdk).
 local simFree is MakeAtmEntrySim(dfc).
 local simChute is MakeAtmEntrySim(sfc).
 
-local endGP is 0.
-local err is 0.
-
 function ChuteBrackingEstimate{
 	local beforeChute is simFree:FromState(
-		{parameter vx,vz,cml. return cml[0] >= chuteDelay.},
-		chuteDelay+0.1,
+		{parameter vx,vz,cml. return cml[0] >= calcMargin.},
+		marginStep,
 		lexicon(
 			"VX", GROUNDSPEED,
 			"VZ", VERTICALSPEED,
@@ -28,10 +26,14 @@ function ChuteBrackingEstimate{
 			"X", 0,
 			"Z", ALTITUDE)
 		).
+
+	set beforeChute["T"] to 0.
+	set beforeChute["X"] to 0.
 	local resultState is simChute:FromState(
-		{parameter vx,vz,cml. return cml[2] <= 100 OR vx <= 33.},
+		{parameter vx,vz,cml. return cml[2] <= 100 OR vx <= 5.},
 		0.25,
 		beforeChute
 		).
+	if resultState["Z"]<100 { PRINT "Z: " + resultState["Z"]. }
 	return resultState["X"].
 }

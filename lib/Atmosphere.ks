@@ -22,13 +22,15 @@ function AtmDensity{
 		set lE to dte.
 	}
 }
+
 function MakeDragForceCalculator{
-	parameter dt.
+	parameter dragT.
 	parameter dragK.
 	
 	return {
+		parameter t.
 		parameter cAlt.
 		parameter spd.
-		return AtmDensity(dt,cAlt)*dragK*spd*spd.
+		return AtmDensity(dragT,cAlt)*dragK*spd*spd.
 	}.
 }
