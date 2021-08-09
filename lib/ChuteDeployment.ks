@@ -4,7 +4,7 @@ RUNONCEPATH("0:/lib/Atmosphere").
 global xlChuteK is 0.36.
 
 local deploymentStart is 2.
-local deploymentFinish is 5.
+local deploymentFinish is 6.
 
 function MakeChuteForceCalculator{
 	parameter dragT.

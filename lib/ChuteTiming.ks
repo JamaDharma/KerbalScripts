@@ -15,6 +15,15 @@ local sfc is MakeChuteForceCalculator(KerbinAT,dk,dk+cdk).
 local simFree is MakeAtmEntrySim(dfc).
 local simChute is MakeAtmEntrySim(sfc).
 
+local function StoppingDistance {
+	parameter dragT.
+	parameter dragK.
+	parameter cState.
+	
+	local spd is SQRT(cState["VX"]^2+cState["VZ"]^2).
+	//vx^2/dvx
+	return  cState["VX"]*MASS/(AtmDensity(dragT,cState["Z"])*dragK*spd).
+}
 function ChuteBrackingEstimate{
 	local beforeChute is simFree:FromState(
 		{parameter vx,vz,cml. return cml[0] >= calcMargin.},
@@ -30,10 +39,13 @@ function ChuteBrackingEstimate{
 	set beforeChute["T"] to 0.
 	set beforeChute["X"] to 0.
 	local resultState is simChute:FromState(
-		{parameter vx,vz,cml. return cml[2] <= 100 OR vx <= 5.},
+		{parameter vx,vz,cml. return cml[2] <= 100 OR vx <= 10.},
 		0.25,
 		beforeChute
 		).
+	local stopDist is StoppingDistance(KerbinAT,dk+cdk,resultState).
 	if resultState["Z"]<100 { PRINT "Z: " + resultState["Z"]. }
-	return resultState["X"].
+	PRINT "T: " + resultState["T"].
+	PRINT "stopDist: " + stopDist.
+	return resultState["X"]+stopDist.
 }
