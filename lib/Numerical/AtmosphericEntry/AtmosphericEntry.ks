@@ -21,6 +21,22 @@ function MakeAtmEntrySim{
 		
 		return GravTStep(st).
 	}
+	
+	local function Accel{
+		parameter t,x,z,vx,vz.
+		
+		local br is (body:radius+z).
+		local bg is body:mu/(br*br).
+		local orbX is (vx+175).//175 is kerbin rotation
+		local spd is SQRT(vx^2+vz^2).
+		local accel is -dfc(t,z,spd)*shipMassK.
+		local sk is accel/spd.
+
+		return lexicon(
+			"AX", vx*sk,
+			"AZ", vz*sk - (bg - orbX*orbX/br),
+		).
+	}
 
 	local function GravTStep{
 		parameter st.//st["VX"],st["VZ"],st["T"],st["X"],st["Z"]
@@ -35,28 +51,12 @@ function MakeAtmEntrySim{
 				"Z", st["Z"]+st["VZ"]*lastStep
 			).
 		}
-		
-		//[0, 1, 2]
-		//[t, x, z]
-		local nst is lexicon().
-		set nst["T"] to st["T"]+dt.
-		set nst["X"] to st["X"]+st["VX"]*dt.
-		set nst["Z"] to st["Z"]+st["VZ"]*dt.
-		
-		local br is (body:radius+st["Z"]).
-		local bg is body:mu/(br*br).
-		local orbX is (st["VX"]+175).//175 is kerbin rotation
-		local spd is SQRT(st["VX"]^2+st["VZ"]^2).
-		local accel is -dfc(st["T"],st["Z"],spd)*shipMassK.
-		local sk is accel/spd.
 
-		local dvx is st["VX"]*sk.
-		local dvz is st["VZ"]*sk - (bg - orbX*orbX/br).
-		
+		local nst is Accel(st["T"],st["X"],st["Z"],st["VX"],st["VZ"]).
 		set nst["T"] to st["T"]+dt.
 	
-		set nst["VX"] to st["VX"]+dvx*dt.
-		set nst["VZ"] to st["VZ"]+dvz*dt.
+		set nst["VX"] to st["VX"]+nst["AX"]*dt.
+		set nst["VZ"] to st["VZ"]+nst["AZ"]*dt.
 		
 		set nst["X"] to st["X"]+(st["VX"]+nst["VX"])*dt/2.
 		set nst["Z"] to st["Z"]+(st["VZ"]+nst["VZ"])*dt/2.
