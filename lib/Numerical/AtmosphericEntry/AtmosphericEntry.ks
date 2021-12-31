@@ -19,45 +19,49 @@ function MakeAtmEntrySim{
 		set exitHeight to exitH.
 		set dt to timeStep.
 		
-		return GravTStep(st["VX"],st["VZ"],list(st["T"],st["X"],st["Z"])).
+		return GravTStep(st).
 	}
 
 	local function GravTStep{
-		parameter vx,vz.
-		parameter cml.
+		parameter st.//st["VX"],st["VZ"],st["T"],st["X"],st["Z"]
 		
-		if (cml[2]+vz*dt)<exitHeight {
-			local lastStep is (exitHeight-cml[2])/vz.
+		if (st["Z"]+st["VZ"]*dt)<exitHeight {
+			local lastStep is (exitHeight-st["Z"])/st["VZ"].
 			return lexicon(
-				"VX", vx,
-				"VZ", vz,
-				"T", cml[0]+lastStep,
-				"X", cml[1]+vx*lastStep,
-				"Z", cml[2]+vz*lastStep
+				"VX", st["VX"],
+				"VZ", st["VZ"],
+				"T", st["T"]+lastStep,
+				"X", st["X"]+st["VX"]*lastStep,
+				"Z", st["Z"]+st["VZ"]*lastStep
 			).
 		}
 		
 		//[0, 1, 2]
 		//[t, x, z]
-		set cml[0] to cml[0]+dt.
-		set cml[1] to cml[1]+vx*dt.
-		set cml[2] to cml[2]+vz*dt.
+		local nst is lexicon().
+		set nst["T"] to st["T"]+dt.
+		set nst["X"] to st["X"]+st["VX"]*dt.
+		set nst["Z"] to st["Z"]+st["VZ"]*dt.
 		
-		local br is (body:radius+cml[2]).
+		local br is (body:radius+st["Z"]).
 		local bg is body:mu/(br*br).
-		local orbX is (vx+175).//175 is kerbin rotation
-		local spd is SQRT(vx*vx+vz*vz).
-		local accel is -dfc(cml[0],cml[2],spd)*shipMassK.
+		local orbX is (st["VX"]+175).//175 is kerbin rotation
+		local spd is SQRT(st["VX"]^2+st["VZ"]^2).
+		local accel is -dfc(st["T"],st["Z"],spd)*shipMassK.
 		local sk is accel/spd.
 
-		local dvx is vx*sk.
-		local dvz is vz*sk - (bg - orbX*orbX/br).	
+		local dvx is st["VX"]*sk.
+		local dvz is st["VZ"]*sk - (bg - orbX*orbX/br).
 		
-		//NPrintL(lexicon("vX",vx,"vZ",vz)).
-		//NPrintL(lexicon("Z",cml[1],"Z",cml[2])).
-		//NPrint("accel",accel).
-		//WaitKey().
-		return GravTStep(vx+dvx*dt, vz+dvz*dt, cml).
+		set nst["T"] to st["T"]+dt.
+	
+		set nst["VX"] to st["VX"]+dvx*dt.
+		set nst["VZ"] to st["VZ"]+dvz*dt.
+		
+		set nst["X"] to st["X"]+(st["VX"]+nst["VX"])*dt/2.
+		set nst["Z"] to st["Z"]+(st["VZ"]+nst["VZ"])*dt/2.
+
+		return GravTStep(nst).
 	}
 
 	return lexicon("FromState", SimState@).
