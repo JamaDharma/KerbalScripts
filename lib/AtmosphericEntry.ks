@@ -4,30 +4,19 @@ RUNONCEPATH("0:/lib/Ship/Engines").
 
 function MakeAtmEntrySim{
 	parameter dfc.
+	parameter shipMass is MASS.
+	 
+	local shipMassK is 1/shipMass.
 	
-	local shipMassK is 1/MASS.
-	
-	local condition is { return vz < 0.}.
+	local exitHeight is 500.
 	local dt is 1.
 	
-	local function SimVelAng{
-		parameter exitCondition, timeStep.
-		parameter startSpeed, startAngle.
-		parameter cml is list(0,0,0).
-		
-		set condition to exitCondition.
-		set dt to timeStep.
-		
-		return GravTStep(
-			startSpeed*COS(startAngle),
-			startSpeed*SIN(startAngle),
-			cml).
-	}
+
 	local function SimState{
-		parameter exitCondition, timeStep.
+		parameter exitH, timeStep.
 		parameter st.
 		
-		set condition to exitCondition.
+		set exitHeight to exitH.
 		set dt to timeStep.
 		
 		return GravTStep(st["VX"],st["VZ"],list(st["T"],st["X"],st["Z"])).
@@ -36,14 +25,15 @@ function MakeAtmEntrySim{
 	local function GravTStep{
 		parameter vx,vz.
 		parameter cml.
-
-		if condition(vx,vz,cml){
+		
+		if (cml[2]+vz*dt)<exitHeight {
+			local lastStep is (exitHeight-cml[2])/vz.
 			return lexicon(
 				"VX", vx,
 				"VZ", vz,
-				"T", cml[0],
-				"X", cml[1],
-				"Z", cml[2]
+				"T", cml[0]+lastStep,
+				"X", cml[1]+vx*lastStep,
+				"Z", cml[2]+vz*lastStep
 			).
 		}
 		
@@ -70,7 +60,5 @@ function MakeAtmEntrySim{
 		return GravTStep(vx+dvx*dt, vz+dvz*dt, cml).
 	}
 
-	return lexicon(
-		"VelAng", SimVelAng@,
-		"FromState", SimState@).
+	return lexicon("FromState", SimState@).
 }
