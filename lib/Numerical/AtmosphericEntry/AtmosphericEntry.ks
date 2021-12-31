@@ -29,12 +29,12 @@ function MakeAtmEntrySim{
 		local bg is body:mu/(br*br).
 		local orbX is (vx+175).//175 is kerbin rotation
 		local spd is SQRT(vx^2+vz^2).
-		local accel is -dfc(t,z,spd)*shipMassK.
-		local sk is accel/spd.
+		local ac is -dfc(t,z,spd)*shipMassK.
+		local sk is ac/spd.
 
 		return lexicon(
 			"AX", vx*sk,
-			"AZ", vz*sk - (bg - orbX*orbX/br),
+			"AZ", vz*sk - (bg - orbX*orbX/br)
 		).
 	}
 
