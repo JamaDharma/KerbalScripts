@@ -18,7 +18,8 @@ function MakeAtmEntrySim{
 		
 		set exitHeight to exitH.
 		set dt to timeStep.
-		
+		set st["AX"] to 0.
+		set st["AZ"] to 0.
 		return GravTStep(st).
 	}
 	
@@ -52,7 +53,12 @@ function MakeAtmEntrySim{
 			).
 		}
 
-		local nst is Accel(st["T"],st["X"],st["Z"],st["VX"],st["VZ"]).
+		local nst is Accel(
+			st["T"]+dt/2,
+			st["X"]+st["VX"]*dt/2,
+			st["Z"]+st["VZ"]*dt/2,
+			st["VX"]+st["AX"]*dt/2,
+			st["VZ"]+st["AZ"]*dt/2).
 		set nst["T"] to st["T"]+dt.
 	
 		set nst["VX"] to st["VX"]+nst["AX"]*dt.
