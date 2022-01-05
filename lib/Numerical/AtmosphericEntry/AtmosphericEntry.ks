@@ -20,54 +20,53 @@ function MakeAtmEntrySim{
 		set dt to timeStep.
 		set st["AX"] to 0.
 		set st["AZ"] to 0.
-		return GravTStep(st).
+		
+		return GravTStep(lexicon(
+			"T", st["T"],
+			"P", V(st["X"],0,st["Z"]),
+			"V", V(st["VX"],0,st["VZ"]),
+			"A", V(0,0,0)
+		)).
 	}
 	
 	local function Accel{
-		parameter t,x,z,vx,vz.
+		parameter t,pos,vel.
 		
-		local br is (body:radius+z).
+		local br is (body:radius+pos:Z).
 		local bg is body:mu/(br*br).
-		local orbX is (vx+175).//175 is kerbin rotation
-		local spd is SQRT(vx^2+vz^2).
-		local ac is -dfc(t,z,spd)*shipMassK.
+		local orbX is (vel:X+175).//175 is kerbin rotation
+		local spd is vel:MAG.
+		local ac is -dfc(t,pos:Z,spd)*shipMassK.
 		local sk is ac/spd.
 
-		return lexicon(
-			"AX", vx*sk,
-			"AZ", vz*sk - (bg - orbX*orbX/br)
-		).
+		return V(vel:X*sk, 0, vel:Z*sk - (bg - orbX*orbX/br)).
 	}
 
 	local function GravTStep{
 		parameter st.//st["VX"],st["VZ"],st["T"],st["X"],st["Z"]
 		
-		if (st["Z"]+st["VZ"]*dt)<exitHeight {
-			local lastStep is (exitHeight-st["Z"])/st["VZ"].
+		if (st["P"]:z+st["V"]:z*dt)<exitHeight {
+			local lastStep is (exitHeight-st["P"]:z)/st["V"]:z.
 			return lexicon(
-				"VX", st["VX"],
-				"VZ", st["VZ"],
+				"VX", st["V"]:X,
+				"VZ", st["V"]:Z,
 				"T", st["T"]+lastStep,
-				"X", st["X"]+st["VX"]*lastStep,
-				"Z", st["Z"]+st["VZ"]*lastStep
+				"X", st["P"]:X+st["V"]:X*lastStep,
+				"Z", st["P"]:Z+st["V"]:Z*lastStep
 			).
 		}
 
 		local hdt is dt/2.
-		local nst is Accel(
+		local nst is lexicon( "A", Accel(
 			st["T"]+hdt,
-			st["X"]+st["VX"]*hdt,
-			st["Z"]+st["VZ"]*hdt,
-			st["VX"]+st["AX"]*hdt,
-			st["VZ"]+st["AZ"]*hdt).
+			st["P"]+st["V"]*hdt,
+			st["V"]+st["A"]*hdt)).
 
 		set nst["T"] to st["T"]+dt.
-	
-		set nst["VX"] to st["VX"]+nst["AX"]*dt.
-		set nst["VZ"] to st["VZ"]+nst["AZ"]*dt.
+
+		set nst["V"] to st["V"]+nst["A"]*dt.
 		
-		set nst["X"] to st["X"]+(st["VX"]+nst["VX"])*hdt.
-		set nst["Z"] to st["Z"]+(st["VZ"]+nst["VZ"])*hdt.
+		set nst["P"] to st["P"]+(st["V"]+nst["V"])*hdt.
 
 		return GravTStep(nst).
 	}
