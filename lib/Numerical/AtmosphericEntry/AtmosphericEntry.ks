@@ -53,19 +53,21 @@ function MakeAtmEntrySim{
 			).
 		}
 
+		local hdt is dt/2.
 		local nst is Accel(
-			st["T"]+dt/2,
-			st["X"]+st["VX"]*dt/2,
-			st["Z"]+st["VZ"]*dt/2,
-			st["VX"]+st["AX"]*dt/2,
-			st["VZ"]+st["AZ"]*dt/2).
+			st["T"]+hdt,
+			st["X"]+st["VX"]*hdt,
+			st["Z"]+st["VZ"]*hdt,
+			st["VX"]+st["AX"]*hdt,
+			st["VZ"]+st["AZ"]*hdt).
+
 		set nst["T"] to st["T"]+dt.
 	
 		set nst["VX"] to st["VX"]+nst["AX"]*dt.
 		set nst["VZ"] to st["VZ"]+nst["AZ"]*dt.
 		
-		set nst["X"] to st["X"]+(st["VX"]+nst["VX"])*dt/2.
-		set nst["Z"] to st["Z"]+(st["VZ"]+nst["VZ"])*dt/2.
+		set nst["X"] to st["X"]+(st["VX"]+nst["VX"])*hdt.
+		set nst["Z"] to st["Z"]+(st["VZ"]+nst["VZ"])*hdt.
 
 		return GravTStep(nst).
 	}
