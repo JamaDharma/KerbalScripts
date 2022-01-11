@@ -34,17 +34,18 @@ function GetResultState{
 			"Z", altd)
 	).
 	set calcT to time:SECONDS-calcT.
-	//NPrint("timestep",timestep).
+	NPrint("timestep",timestep).
 	NPrint("calcTime",calcT).
 	NPrint("estDist",result["X"]).
+	NPrint("estHeight",result["Z"]).
+	NPrint("estHSpeed",result["VX"]).
+	NPrint("estVSpeed",result["VZ"]).
+	NPrint("estTime",result["T"]).
 	
 	return result.
 }
+CLEARSCREEN.
 local resultState is GetResultState(0.25).
-NPrint("estHeight",resultState["Z"]).
-NPrint("estHSpeed",resultState["VX"]).
-NPrint("estVSpeed",resultState["VZ"]).
-NPrint("estTime",resultState["T"]).
 GetResultState(0.5).
 GetResultState(1).
 GetResultState(2).
