@@ -3,20 +3,24 @@ RUNONCEPATH("0:/lib/Debug").
 RUNONCEPATH("0:/lib/Defaults").
 RUNONCEPATH("0:/lib/Storage").
 RUNONCEPATH("0:/lib/SurfaceAt").
+RUNONCEPATH("0:/lib/Ship/DeltaV").
 RUNONCEPATH("0:/lib/Search/TragectoryImpactSearch").
 RUNONCEPATH("0:/lib/Atmosphere").
-RUNONCEPATH("0:/lib/AtmosphericEntry").
+RUNONCEPATH("0:/lib/Numerical/AtmosphericEntry/AtmosphericEntry").
 //0.028 for big booster
 //0.007 for medium
 parameter dk is ShipTypeStorage():GetValue("DragK").
 
 CORE:PART:CONTROLFROM().
-local targetHeight is 1000.
 global pad is BODY:GEOPOSITIONLATLNG(-0.0972077889151947,-74.5576774701971).
 
 local tgt is pad.
 local dfc is MakeDragForceCalculator(KerbinAT,dk).
-local sim is MakeAtmEntrySim(dfc).
+local massAfterBurn is MassAfter(NEXTNODE:DELTAV:MAG).
+NPRINT("massAfterBurn",massAfterBurn).
+local sim is MakeAtmEntrySim(dfc,massAfterBurn).
+
+local br is BODY:RADIUS.
 
 local function StateAtT{
 	parameter t.
@@ -32,7 +36,7 @@ local function StateAtT{
 		"VZ", upV:NORMALIZED*sv,
 		"T", 0,
 		"X", 0,
-		"Z", upV:MAG-BODY:RADIUS).
+		"Z", upV:MAG-br).
 }
 
 local function AdjustTime{
@@ -41,15 +45,14 @@ local function AdjustTime{
 	local startState is StateAtT(time50).
 	local startGP is GeopositionAt(ship,time50).
 
-	local resultState is sim:FromState(
-		{parameter vx,vz,cml. return cml[2] <= 500.},
-		1,startState).
+	local resultState is sim:FromState(500,1,startState).
 		
 	NPrint("X",resultState["X"]).
 	NPrint("GlobeDistance",GlobeDistance(tgt,startGP)).
 	local err is GlobeDistance(tgt,startGP)-resultState["X"].
 	NPRINT("err",err).
-	set NEXTNODE:ETA to NEXTNODE:ETA + err/groundspeed.
+	local timeAdj is err*(ALTITUDE+br)/(br*GROUNDSPEED).
+	set NEXTNODE:ETA to NEXTNODE:ETA + timeAdj.
 }
 
 local function AdjustInclination{
