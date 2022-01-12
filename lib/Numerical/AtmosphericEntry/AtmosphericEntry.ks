@@ -23,12 +23,13 @@ function MakeAtmEntrySim{
 		parameter t,pos,vel.
 
 		local cR is (br+pos:Z).
+		local cR2R is 1/(cR*cR).
 		local w is vel:Y.
 		
 		local orbV is V(w*cR,0,vel:Z).
 		local atmV is V((w-bw)*cR,0,vel:Z).
 		
-		local gf is bm/(cR*cR).
+		local gf is bm*cR2R.
 		local cf is VCRS(orbV,V(0,w,0)).
 		local spd is atmV:MAG.
 		local ac is -dfc(t,pos:Z,spd)*shipMassK.
@@ -36,7 +37,9 @@ function MakeAtmEntrySim{
 
 		local totalF is gf+cf+df.
 		
-		return V(0,totalF:X/cR,totalF:Z).
+		local fY is (totalF:X*cR-orbV:X*orbV:Z)*cR2R.
+		
+		return V(totalF:X,fY,totalF:Z).
 	}
 	
 	local solver is 0.
@@ -82,7 +85,7 @@ function MakeAtmEntrySim{
 		return GravTStep(lexicon(
 			"T", st["T"],
 			"P", V(st["X"],0,st["Z"]),
-			"V", V(st["VX"],st["VX"]/(br+st["Z"]),st["VZ"]),
+			"V", V(st["VX"],st["VX"]/(br+st["Z"])+bw,st["VZ"]),
 			"A", V(0,0,0)
 		)).
 	}
