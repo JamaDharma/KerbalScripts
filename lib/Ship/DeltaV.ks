@@ -20,6 +20,11 @@ function LfOxFactor{
 	return ln(SHIP:MASS/(SHIP:MASS-StageLfOx())).
 }
 
+function MassAfter{
+	parameter dV.
+	return StageCalculator():MassAfter(dv).
+}
+
 function StageDeltaV{
 	parameter pressure is 0.
 	return StageCalculator(pressure):StageDeltaV().
@@ -36,6 +41,11 @@ function StageCalculator{
 	local exV is constant:g0*ispP.
 	local accel is MAXTHRUST/MASS.
 	
+	function MassAfter{
+		parameter dV.
+		return MASS/(constant:E^(dV/exV)).
+	}
+	
 	function BurnTime{
 		parameter dV.
 		return exV/accel * (1 - constant:E^(-dV/exV)).
@@ -47,6 +57,7 @@ function StageCalculator{
 	
 	return lexicon(
 		"StageDeltaV",StageDeltaV@,
+		"MassAfter",MassAfter@,
 		"BurnTime", BurnTime@
 	).
 }
