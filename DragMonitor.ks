@@ -22,11 +22,9 @@ function InverseControl {
 InverseControl().
 WAIT 0.5.
 
-function Gravity {
-	local br is body:radius+ALTITUDE.
-	local ohs is VXCL(UP:VECTOR,ship:VELOCITY:ORBIT):MAG.
-	return body:mu/(br*br)-ohs*ohs/br.
-}
+local dfc is MakeDragForceCalculator(KerbinAT,0.01).
+local simA is MakeAtmEntrySim(dfc).
+local simN is MakeAtmEntrySim({parameter d1,d2,d3. return 0. }).
 
 function GetState{
 	WAIT 0.
@@ -35,45 +33,31 @@ function GetState{
 		"X", 0,
 		"Z", ALTITUDE,
 		"VX", GROUNDSPEED,
-		"VZ", VERTICALSPEED,
-		"g", Gravity()
+		"VXO", VXCL(UP:VECTOR,ship:VELOCITY:ORBIT):MAG,
+		"VZ", VERTICALSPEED
 	).
 }
-
-local function Accel{
-	parameter t,x,z,vx,vz.
-	
-	local w is vx/(body:radius+x).
-
-	local spd is SQRT(vx^2+vz^2).
-	local ac is -dfc(t,z,spd)*shipMassK.
-	local sk is ac/spd.
-
-	return lexicon(
-		"AX", vx*sk - 2*vz*w,
-		"AZ", vz*sk - startState["g"]
-	).
-}
-
-local shipMassK is 1/MASS.
-local dfc is MakeDragForceCalculator(KerbinAT,0.01).
-local solver is MakeMidpoint1Solver()["AdvanceStateT"].
-
-WAIT UNTIL ALTITUDE < 50000.
 
 local startState is GetState().
 UNTIL false {
 	WAIT 0.84.
 	local newState is GetState().
 	local dt is newState["T"]-startState["T"].
-	local estS is solver(Accel@, startState, dt).
-	local oAX is (newState["VX"]-startState["VX"])/dt.
-	local oAZ is (newState["VZ"]-startState["VZ"])/dt-startState["g"].
+	local noAtm is simN:FromStateToT(newState["T"], 10, startState).
+	local estS is simA:FromStateToT(newState["T"], 10, startState).
+
+	local dAX is (newState["VXO"]-noAtm["VXO"]).
+	local edAX is (estS["VXO"]-noAtm["VXO"]).
+	local dAZ is (newState["VZ"]-noAtm["VZ"]).
+	local edAZ is (estS["VZ"]-noAtm["VZ"]).
 	NPrint("dt",dt).
-	NPrint("vKX",oAX/estS["AX"]).
-	NPrint("vKZ",oAZ/(estS["AZ"]-startState["g"])).
+	if ABS(edAX) > 0.00001 NPrint("vKX",dAX/edAX).
+	if ABS(edAZ) > 0.00001 NPrint("vKZ",dAZ/edAZ).
+	
 	NPrintL(startState).
-	NPrintL(newState).
+	NPrintL(noAtm).
 	NPrintL(estS).
-	set startState to newState.	
+	NPrintL(newState).
+	
+	set startState to newState.
 }

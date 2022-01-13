@@ -11,8 +11,6 @@ local function SolveQuadratic {
 function MakeAtmEntrySim{
 	parameter dfc.
 	parameter shipMass is MASS.
-	 
-	local exitHeight is 500.
 	
 	local shipMassK is 1/shipMass.
 	local br is body:radius.
@@ -42,53 +40,77 @@ function MakeAtmEntrySim{
 		return V(totalF:X,fY,totalF:Z).
 	}
 	
-	local solver is 0.
+	local function ConstructReturnState{
+		parameter st.
+		local cr is br+st["P"]:Z.
+		return lexicon(
+			"T", st["T"],
+			"X", (st["P"]:Y-bw*st["T"])*br,
+			"Z", st["P"]:Z,
+			"VX", (st["V"]:Y-bw)*cr,
+			"VXO", st["V"]:Y*cr,
+			"VZ", st["V"]:Z
+		).
+	}
 	
-	local function AtHeightParams {
+	local function ConstructInnerState{
+		parameter st.
+		local ip is V(st["X"],st["X"]/br,st["Z"]).
+		local iv is V(st["VX"],st["VX"]/(br+st["Z"])+bw,st["VZ"]).
+		return lexicon(
+			"T", st["T"],
+			"P", ip,
+			"V", iv,
+			"A", Accel(st["T"],ip,iv)
+		).
+	}
+	
+	local function AtHeightState {
 		parameter st1, st2.
 		
 		local err is st2["P"]:Z-500.
-		if ABS(err) < 1 return lexicon(
-			"VX", (st2["V"]:Y-bw)*br,
-			"VZ", st2["V"]:Z,
-			"T", st2["T"],
-			"X", (st2["P"]:Y-bw*st2["T"])*br,
-			"Z", st2["P"]:Z
-		).
+		if ABS(err) < 1 return ConstructReturnState(st2).
 		
 		local timeErr is SolveQuadratic(st1["P"]:Z-500,st1["V"]:Z,st1["A"]:Z).
 		local newSt is NewMidpoint1Solver(timeErr, Accel@)(st1).
 		
-		return AtHeightParams(newSt,newSt).
+		return AtHeightState(newSt,newSt).
 	}	
 	
-	local function GravTStep{
-		parameter st.
-		
-		local newSt is solver(st).
-		
-		if newSt["P"]:Z < exitHeight	
-			return AtHeightParams(st,newSt).
-
-		return GravTStep(newSt).
-	}
-
-	local function SimState{
+	local function SimToH{
 		parameter exitH, timeStep.
 		parameter st.
 		
-		set exitHeight to exitH.
-		set solver to NewMidpoint1Solver(timeStep, Accel@).
-		set st["AX"] to 0.
-		set st["AZ"] to 0.
+		local solver to NewMidpoint1Solver(timeStep, Accel@).
+		local oldSt is ConstructInnerState(st).
+		local currSt is oldSt.
 		
-		return GravTStep(lexicon(
-			"T", st["T"],
-			"P", V(st["X"],0,st["Z"]),
-			"V", V(st["VX"],st["VX"]/(br+st["Z"])+bw,st["VZ"]),
-			"A", V(0,0,0)
-		)).
+		until currSt["P"]:Z < exitH {
+			set oldSt to currSt.
+			set currSt to solver(oldSt).
+		}
+		
+		return AtHeightState(oldSt,currSt).
+	}
+	
+	local function SimToT{
+		parameter exitT, timeStep.
+		parameter st.
+		
+		local solver to NewMidpoint1Solver(timeStep, Accel@).
+		local currSt is ConstructInnerState(st).
+		
+		until currSt["T"]+timeStep > exitT {
+			set currSt to solver(oldSt).
+		}
+		
+		return ConstructReturnState(
+			NewMidpoint1Solver(exitT-currSt["T"], Accel@)(currSt)
+		).
 	}
 
-	return lexicon("FromState", SimState@).
+	return lexicon(
+		"FromStateToH", SimToH@,
+		"FromStateToT", SimToT@,
+		"FromState", SimToH@).
 }
