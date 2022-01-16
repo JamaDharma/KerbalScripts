@@ -4,7 +4,7 @@ function NewMidpoint1Solver {
 	parameter dt.
 	parameter accel.
 	
-	local function Midpoint1Solver {
+	local function Solver {
 		
 		parameter st.
 		
@@ -23,43 +23,34 @@ function NewMidpoint1Solver {
 		return nst.
 	}
 
-	return Midpoint1Solver@.
+	return Solver@.
 }
 
-
-function MakeMidpoint1Solver{
-
-	local function SimStateStep{
-		parameter accel, sSt, timeStep.
-		
-		local ca is accel(sSt["T"],sSt["X"],sSt["Z"],sSt["VX"],sSt["VZ"]). 
-		set sSt["AX"] to ca["AX"].
-		set sSt["AZ"] to ca["AZ"].
-		
-		return GravTStep(accel, sSt, timeStep).
-	}
+function NewMidpoint2Solver {
+	parameter dt.
+	parameter accel.
 	
-	local function GravTStep{
-		parameter accel, st, dt.
-
+	local function Solver {
+		
+		parameter st.
+		
 		local hdt is dt/2.
-		local nst is accel(
+		local ma is Accel(
 			st["T"]+hdt,
-			st["X"]+st["VX"]*hdt,
-			st["Z"]+st["VZ"]*hdt,
-			st["VX"]+st["AX"]*hdt,
-			st["VZ"]+st["AZ"]*hdt).
+			st["P"]+st["V"]*hdt,
+			st["V"]+st["A"]*hdt
+		).
+			
+		local nst is lexicon(
+			"T",st["T"]+dt,
+			"P",st["P"]+(st["V"]+ma*hdt)*dt,
+			"V",st["V"]+ma*dt
+		).
 
-		set nst["T"] to st["T"]+dt.
-	
-		set nst["VX"] to st["VX"]+nst["AX"]*dt.
-		set nst["VZ"] to st["VZ"]+nst["AZ"]*dt.
-		
-		set nst["X"] to st["X"]+(st["VX"]+nst["VX"])*hdt.
-		set nst["Z"] to st["Z"]+(st["VZ"]+nst["VZ"])*hdt.
+		set nst["A"] to 	Accel(nst["T"],nst["P"],nst["V"]).
 		
 		return nst.
 	}
 
-	return lexicon("AdvanceStateT", SimStateStep@).
+	return Solver@.
 }

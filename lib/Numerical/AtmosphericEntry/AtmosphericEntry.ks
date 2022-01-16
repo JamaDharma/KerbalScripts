@@ -11,6 +11,7 @@ local function SolveQuadratic {
 function MakeAtmEntrySim{
 	parameter dfc.
 	parameter shipMass is MASS.
+	parameter solverMaker is NewMidpoint1Solver@.
 	
 	local shipMassK is 1/shipMass.
 	local br is body:radius.
@@ -28,7 +29,7 @@ function MakeAtmEntrySim{
 		local atmV is V((w-bw)*cR,0,orbV:Z).
 		
 		local gf is bm*cR2R.
-		local cf is VCRS(orbV,V(0,w,0)).//hack,y ignored
+		local cf is VCRS(orbV,V(0,w,0)).//hack - y ignored
 		local spd is atmV:MAG.
 		local ac is -dfc(t,pos:Z,spd)*shipMassK.
 		local df is ac*atmV/spd.
@@ -76,7 +77,7 @@ function MakeAtmEntrySim{
 		if ABS(err) < 1 return ConstructReturnState(st2).
 		
 		local timeErr is SolveQuadratic(st1["P"]:Z-500,st1["V"]:Z,st1["A"]:Z).
-		local newSt is NewMidpoint1Solver(timeErr, Accel@)(st1).
+		local newSt is solverMaker(timeErr, Accel@)(st1).
 		
 		return AtHeightState(newSt,newSt).
 	}	
@@ -85,7 +86,7 @@ function MakeAtmEntrySim{
 		parameter exitH, timeStep.
 		parameter st.
 		
-		local solver to NewMidpoint1Solver(timeStep, Accel@).
+		local solver to solverMaker(timeStep, Accel@).
 		local oldSt is ConstructInnerState(st).
 		local currSt is oldSt.
 		
@@ -101,7 +102,7 @@ function MakeAtmEntrySim{
 		parameter exitT, timeStep.
 		parameter st.
 		
-		local solver to NewMidpoint1Solver(timeStep, Accel@).
+		local solver to solverMaker(timeStep, Accel@).
 		local currSt is ConstructInnerState(st).
 		
 		until currSt["T"]+timeStep > exitT {
@@ -109,7 +110,7 @@ function MakeAtmEntrySim{
 		}
 		
 		return ConstructReturnState(
-			NewMidpoint1Solver(exitT-currSt["T"], Accel@)(currSt)
+			solverMaker(exitT-currSt["T"], Accel@)(currSt)
 		).
 	}
 
