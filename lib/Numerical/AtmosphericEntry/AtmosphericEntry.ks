@@ -55,8 +55,13 @@ function MakeAtmEntrySim{
 	
 	local function ConstructInnerState{
 		parameter st.
+		local cr is br+st["Z"].
 		local ip is V(st["X"],st["X"]/br,st["Z"]).
-		local iv is V(st["VX"],st["VX"]/(br+st["Z"])+bw,st["VZ"]).
+		local iv is 0.
+		if st:HASKEY("VXO") 
+			set iv to V(st["VXO"],st["VXO"]/cr,st["VZ"]).
+		else
+			set iv to V(st["VX"]+cr*bw,st["VX"]/cr+bw,st["VZ"]).
 		return lexicon(
 			"T", st["T"],
 			"P", ip,
@@ -101,7 +106,7 @@ function MakeAtmEntrySim{
 		local currSt is ConstructInnerState(st).
 		
 		until currSt["T"]+timeStep > exitT {
-			set currSt to solver(oldSt).
+			set currSt to solver(currSt).
 		}
 		
 		return ConstructReturnState(
