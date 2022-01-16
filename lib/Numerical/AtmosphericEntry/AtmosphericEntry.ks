@@ -18,26 +18,25 @@ function MakeAtmEntrySim{
 	local bw is body:ANGULARVEL:MAG.	
 
 	local function Accel{
-		parameter t,pos,vel.
+		parameter t,pos,orbV.
 
 		local cR is (br+pos:Z).
 		local cR2R is 1/(cR*cR).
-		local w is vel:Y.
+		local w is orbV:Y.
 		
-		local orbV is V(w*cR,0,vel:Z).
-		local atmV is V((w-bw)*cR,0,vel:Z).
+		set orbV:X to w*cR.
+		local atmV is V((w-bw)*cR,0,orbV:Z).
 		
 		local gf is bm*cR2R.
-		local cf is VCRS(orbV,V(0,w,0)).
+		local cf is VCRS(orbV,V(0,w,0)).//hack,y ignored
 		local spd is atmV:MAG.
 		local ac is -dfc(t,pos:Z,spd)*shipMassK.
 		local df is ac*atmV/spd.
 
 		local totalF is gf+cf+df.
+		set totalF:Y to (totalF:X*cR-orbV:X*orbV:Z)*cR2R.
 		
-		local fY is (totalF:X*cR-orbV:X*orbV:Z)*cR2R.
-		
-		return V(totalF:X,fY,totalF:Z).
+		return totalF.
 	}
 	
 	local function ConstructReturnState{
