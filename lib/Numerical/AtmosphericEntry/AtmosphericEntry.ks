@@ -11,7 +11,7 @@ local function SolveQuadratic {
 function MakeAtmEntrySim{
 	parameter dfc.
 	parameter shipMass is MASS.
-	parameter solverMaker is NewMidpoint1Solver@.
+	parameter solverMaker is NewRunge4Solver@.
 	
 	local shipMassK is 1/shipMass.
 	local br is body:radius.
