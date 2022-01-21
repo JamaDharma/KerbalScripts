@@ -12,7 +12,7 @@ function NPrintL {
 	parameter p is 1.
 	local result is "".
 	FOR s IN l:KEYS {
-		set result to result + s + ": " + ROUND(l[s],p) + " ".
+		set result to result + s + ":" + ROUND(l[s],p) + "; ".
 	}.
 	PRINT result.
 }

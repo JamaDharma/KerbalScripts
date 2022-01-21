@@ -13,7 +13,6 @@ function MakeAtmEntrySim{
 	local bm is V(0,0,-body:mu).
 	local bw is body:ANGULARVEL:MAG.	
 	local es is NewSimulator(Accel@).
-	local egc is NewEntryGuide(Accel@).
 	
 	local function Accel{
 		parameter t,pos,orbV.
@@ -85,20 +84,38 @@ function MakeAtmEntrySim{
 		return ConstructReturnState(endSt).
 	}
 	
-	local function EntryGuide{
+	local guideLineDataProvider is 0.
+	local function InitEntryGuide{
+		parameter guideLineData.
+		set guideLineDataProvider to 
+			NewGuideLineDataProvider(guideLineData).
+	}
+	local function MakeEntryGuide{
 		parameter exitH, timeStep.
 		parameter st.
 		
 		local startSt is ConstructInnerState(st).
 		local traj is es["TrajectoryToH"](exitH,timeStep,startSt).
-		return egc(traj).
+		local glData is NewGuideLineCalculator(Accel@,timeStep)(traj).
+		
+		InitEntryGuide(glData).
+		return glData.
 	}
-	
-	local function MakeGuideLine{
+	local function EntryGuide{
+		parameter timeStep, st.
+		
+		local startSt is ConstructInnerState(st).
+		local guideE is guideLineDataProvider(startSt["P"]:Z).
+		local endSt is es["SimToHByFrom"](guideE["Z"],timeStep,startSt).
+		local guideX is guideE["X"]+guideE["D"]*(endSt["V"]-guideE["V"])..
+		local stepX is ConstructReturnState(endSt)["X"].
+		return guideX+stepX.
 	}
 
+
 	return lexicon(
-		"StateToHGuide", EntryGuide@,
+		"MakeEntryGuide", MakeEntryGuide@,
+		"EntryGuide", EntryGuide@,
 		"FromStateToH", SimToH@,
 		"FromStateToT", SimToT@
 	).

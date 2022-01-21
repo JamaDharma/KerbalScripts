@@ -35,7 +35,7 @@ set calcT to time:SECONDS-calcT.
 NPrint("SimCalcTime",calcT).
 NPrint("estDist",simRes["X"]).
 set calcT to time:SECONDS.
-local guide is sim:StateToHGuide(targetHeight,2,startState).
+local guide is sim:MakeEntryGuide(targetHeight,2,startState).
 set calcT to time:SECONDS-calcT.
 NPrint("GuideCalcTime",calcT).
 NPrint("estDist",guide[0]["X"]).
@@ -70,8 +70,20 @@ local function TestGuideE{
 	TestGuideXZ(tge,10,10).
 }
 NPrint("GuideLenght",guide:LENGTH).
-TestGuideE(guide[0]).
-TestGuideE(guide[10]).
-TestGuideE(guide[20]).
-TestGuideE(guide[30]).
+//TestGuideE(guide[0]).
+//TestGuideE(guide[10]).
+//TestGuideE(guide[20]).
+//TestGuideE(guide[30]).
+PRINT sim:EntryGuide(2,lexicon(
+			"VX", hspd-2,
+			"VZ", vspd+1,
+			"T", 0,
+			"X", 0,
+			"Z", altd-500)).
+PRINT sim:FromStateToH(500,2,lexicon(
+			"VX", hspd-2,
+			"VZ", vspd+1,
+			"T", 0,
+			"X", 0,
+			"Z", altd-500))["X"].
 
