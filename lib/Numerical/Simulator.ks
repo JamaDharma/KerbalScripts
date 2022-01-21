@@ -15,8 +15,11 @@ local function SolveHalley {
 
 function NewSimulator{
 	parameter accelCalc.
+	parameter dfltStep is 2.
 	parameter solverMaker is NewRunge4Solver@.
 	parameter rootFinder is SolveQuadratic@.
+	
+	local dfltSolver is solverMaker(dfltStep,accelCalc).
 	
 	local function EulerStep {
 		parameter tgtHgh, st.
@@ -43,7 +46,7 @@ function NewSimulator{
 		return StepToAlt(tgtHgh,newSt).
 	}	
 		
-	local function SimToH{
+	local function SimToHLong{
 		parameter exitH, timeStep.
 		parameter st.
 		
@@ -59,22 +62,52 @@ function NewSimulator{
 		return StepToAlt(exitH,oldSt,currSt).
 	}
 	
-	local function ShortSimToH{
-		parameter exitH, timeStep.
-		parameter st.
-		
-		local solver to solverMaker(timeStep, accelCalc).
- 		local oldSt is st.
-		local currSt is oldSt.
+	local function SimToHFrom{
+		parameter exitH.
+		parameter currSt.
 		
 		until currSt["P"]:Z+timeStep*currSt["V"]:Z < exitH {
-			set oldSt to currSt.
-			set currSt to solver(oldSt).
+			set currSt to dfltSolver(currSt).
 		}
 		
-		return StepToAlt(exitH,oldSt,currSt).
+		return StepToAlt(exitH,currSt).
 	}
 	
+	local function SimToHByFrom{
+		parameter exitH, timeStep.
+		parameter currSt.
+		
+		local solver to solverMaker(timeStep, accelCalc).
+		
+		until currSt["P"]:Z+timeStep*currSt["V"]:Z < exitH {
+			set currSt to solver(currSt).
+		}
+		
+		return StepToAlt(exitH,currSt).
+	}
+	
+	local function NStepsToHR{
+		parameter n.
+		parameter exitH.
+		parameter currSt.
+		
+		if n = 0 
+			return StepToAlt(exitH,currSt).
+			
+		return NStepsToH(n-1, exitH, dfltSolver(currSt)).
+	}
+	local function NStepsToHI{
+		parameter n.
+		parameter exitH.
+		parameter currSt.
+		
+		until n = 0 {
+			set currSt to dfltSolver(currSt).
+			set n to n-1.
+		}
+		
+		return StepToAlt(exitH,currSt).
+	}
 	local function TrajToH{
 		parameter exitH, timeStep.
 		parameter st.
@@ -108,8 +141,10 @@ function NewSimulator{
 	return lexicon(
 		"OneStepToH", StepToAlt@,
 		"TrajectoryToH", TrajToH@,
-		"SimToH", SimToH@,
-		"SimToHShort", ShortSimToH@,
+		"SimToHLong", SimToHLong@,
+		"SimToHFrom", SimToHFrom@,
+		"SimToHByFrom", SimToHByFrom@,
+		"NStepsToH", NStepsToHI@,
 		"SimToT", SimToT@
 	).
 }

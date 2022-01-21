@@ -9,8 +9,8 @@ function NewEntryGuide{
 	parameter br is body:radius.
 	
 	local es is NewSimulator(accelCalc).
-	local adjVY is v(0,5/br,0).
-	local adjVZ is v(0,0,5).
+	local adjVY is v(0,1/br,0).
+	local adjVZ is v(0,0,1).
 	
 	local function MakeAdjustedState{
 		parameter st, adj.
@@ -31,6 +31,16 @@ function NewEntryGuide{
 		parameter nSt, adj.
 		local adjSS is MakeAdjustedState(nSt,adj).
 		local adjES is es["OneStepToH"](cEntry["Z"],adjSS).
+		local stepDist is GetDistance(adjSS,adjES).
+		local diffDist is cEntry["D"]*(adjES["V"]-cEntry["V"]).
+		return cEntry["X"]+stepDist+diffDist.	
+	}
+	
+	local function DistanceAdj2{
+		parameter cEntry. 
+		parameter nSt, adj.
+		local adjSS is MakeAdjustedState(nSt,adj).
+		local adjES is es["NStepsToH"](2,cEntry["Z"],adjSS).
 		local stepDist is GetDistance(adjSS,adjES).
 		local diffDist is cEntry["D"]*(adjES["V"]-cEntry["V"]).
 		return cEntry["X"]+stepDist+diffDist.	
@@ -70,7 +80,44 @@ function NewEntryGuide{
 		}
 		return guide.
 	}
-	return ConstructGuide@.
+	
+	local function ConstructGuide2{
+		parameter traj.
+		
+		local endState is traj[traj:LENGTH-1].
+		local i is traj:LENGTH-2.
+		
+		local currEntry is lexicon(
+			"Z", endState["P"]:Z,
+			"V", endState["V"],
+			"X", 0,
+			"D", V(0,0,0)
+		).
+		local guide is list(currEntry).
+
+		until i < 0 {
+			local newSt is traj[i].
+			local newDist is GetDistance(traj[i],endState).
+			local newDistY is DistanceAdj2(currEntry,newSt,adjVY).			
+			local newDistZ is DistanceAdj2(currEntry,newSt,adjVZ).
+			local dY is (newDistY-newDist)/adjVY:Y.
+			local dZ is (newDistZ-newDist)/adjVZ:Z.
+			local newDrv is v(0,dY,dZ).
+			
+			set i to i-2.
+			set currEntry to lexicon(
+				"Z", newSt["P"]:Z,//altitude
+				"V", newSt["V"],//(_,angVel,vertVel)
+				"X", newDist,//(distace to impact point along sea level)
+				"D", newDrv//derivative of X by V
+			).
+
+			guide:INSERT(0,currEntry).
+		}
+		return guide.
+	}
+	
+	return ConstructGuide2@.
 }
 
 function MakeAtmEntrySim{
@@ -141,7 +188,7 @@ function MakeAtmEntrySim{
 		parameter st.
 		
 		local startSt is ConstructInnerState(st).
-		local endSt is es["SimToHShort"](exitH,timeStep,startSt).
+		local endSt is es["SimToHByFrom"](exitH,timeStep,startSt).
 		return ConstructReturnState(endSt).
 	}
 	
