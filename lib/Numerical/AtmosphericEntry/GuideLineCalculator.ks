@@ -1,8 +1,80 @@
 RUNONCEPATH("0:/lib/Debug").
-RUNONCEPATH("0:/lib/Atmosphere").
-RUNONCEPATH("0:/lib/Ship/Engines").
 RUNONCEPATH("0:/lib/Numerical/Simulator").
-RUNONCEPATH("0:/lib/Numerical/AtmosphericEntry/GuideLineCalculator").
+
+function NewEntryGuide{
+	parameter accelCalc.
+	parameter bw is body:ANGULARVEL:MAG.
+	parameter br is body:radius.
+	
+	local es is NewSimulator(accelCalc).
+	local adjVY is v(0,1/br,0).
+	local adjVZ is v(0,0,1).
+	
+	local function MakeAdjustedState{
+		parameter st, adj.
+		
+		return lexicon(
+			"T", st["T"],
+			"P", v(0,0,st["P"]:Z),
+			"V", st["V"]+adj,
+			"A", accelCalc(st["T"],st["P"],st["V"]+adj)
+		).
+	}
+	
+	local function GetDistance{
+		parameter sSt, eSt.
+		return ((eSt["P"]-sSt["P"]):Y-(eSt["T"]-sSt["T"])*bw)*br.
+	}
+	
+	local nStepsToH is es["NStepsToH"].
+	local function DistanceAdj2{
+		parameter cEntry. 
+		parameter nSt, adj.
+		local adjSS is MakeAdjustedState(nSt,adj).
+		local adjES is nStepsToH(2,cEntry["Z"],adjSS).
+		local stepDist is GetDistance(adjSS,adjES).
+		local diffDist is cEntry["D"]*(adjES["V"]-cEntry["V"]).
+		return stepDist+diffDist.	
+	}
+	local function ConstructGuide{
+		parameter traj.
+		
+		local endState is traj[traj:LENGTH-1].
+		local i is traj:LENGTH-2.
+		
+		local currEntry is lexicon(
+			"Z", endState["P"]:Z,
+			"V", endState["V"],
+			"X", 0,
+			"D", V(0,0,0)
+		).
+		local guide is list(currEntry).
+
+		until i < 0 {
+			local newSt is traj[i].
+			local newDist is GetDistance(traj[i],endState).
+			local distDiff is newDist-currEntry["X"].
+			local distDiffY is DistanceAdj2(currEntry,newSt,adjVY).			
+			local distDiffZ is DistanceAdj2(currEntry,newSt,adjVZ).
+			local dY is (distDiffY-distDiff)/adjVY:Y.
+			local dZ is (distDiffZ-distDiff)/adjVZ:Z.
+			local newDrv is v(0,dY,dZ).
+			
+			set i to i-1.
+			set currEntry to lexicon(
+				"Z", newSt["P"]:Z,//altitude
+				"V", newSt["V"],//(_,angVel,vertVel)
+				"X", newDist,//(distace to impact point along sea level)
+				"D", newDrv//derivative of X by V
+			).
+
+			guide:INSERT(0,currEntry).
+		}
+		return guide.
+	}
+	
+	return ConstructGuide@.
+}
 
 function MakeAtmEntrySim{
 	parameter dfc.

@@ -69,6 +69,7 @@ local function TestGuideE{
 	TestGuideXZ(tge,5,5).
 	TestGuideXZ(tge,10,10).
 }
+NPrint("GuideLenght",guide:LENGTH).
 TestGuideE(guide[0]).
 TestGuideE(guide[10]).
 TestGuideE(guide[20]).

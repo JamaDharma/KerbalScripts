@@ -1,6 +1,4 @@
 RUNONCEPATH("0:/lib/Debug").
-RUNONCEPATH("0:/lib/Atmosphere").
-RUNONCEPATH("0:/lib/Ship/Engines").
 RUNONCEPATH("0:/lib/Numerical/Solvers").
 
 local function SolveQuadratic {
@@ -108,20 +106,27 @@ function NewSimulator{
 		
 		return StepToAlt(exitH,currSt).
 	}
-	local function TrajToH{
+	local function Traj2ToH{
 		parameter exitH, timeStep.
 		parameter st.
 		
 		local solver to solverMaker(timeStep, accelCalc).
 		local result is list(st).
 		local currSt is st.
-		
 		until currSt["P"]:Z < exitH {
 			result:ADD(currSt).
 			set currSt to solver(currSt).
 		}
 		result:ADD(StepToAlt(exitH,result[result:LENGTH-1],currSt)).
-		return result.
+		
+		local count is MOD(result:LENGTH-1,2).
+		local result2 is list().
+		until count >= result:LENGTH {
+			result2:ADD(result[count]).
+			set count to count+2.
+		}
+
+		return result2.
 	}
 	
 	local function SimToT{
@@ -140,7 +145,7 @@ function NewSimulator{
 
 	return lexicon(
 		"OneStepToH", StepToAlt@,
-		"TrajectoryToH", TrajToH@,
+		"TrajectoryToH", Traj2ToH@,
 		"SimToHLong", SimToHLong@,
 		"SimToHFrom", SimToHFrom@,
 		"SimToHByFrom", SimToHByFrom@,
