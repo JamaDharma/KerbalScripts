@@ -15,6 +15,8 @@ local shipMass is 50.56.
 local dfc is MakeDragForceCalculator(KerbinAT,0.01).
 local sim is MakeAtmEntrySim(dfc,shipMass).
 
+//CLEARSCREEN.
+
 NPrint("shipMass",shipMass).
 NPrint("hspd",hspd).
 NPrint("vspd",vspd).
@@ -23,7 +25,7 @@ NPrint("altd",altd).
 function GetResultState{
 	parameter timestep is 1.
 	local calcT is time:SECONDS.
-	local result is sim:FromState(
+	local result is sim:FromStateToH(
 		targetHeight,
 		timestep,
 		lexicon(
@@ -37,15 +39,14 @@ function GetResultState{
 	NPrint("timestep",timestep).
 	NPrint("calcTime",calcT).
 	NPrint("estDist",result["X"]).
-	NPrint("estHeight",result["Z"]).
-	NPrint("estHSpeed",result["VX"]).
-	NPrint("estVSpeed",result["VZ"]).
-	NPrint("estTime",result["T"]).
 	
 	return result.
 }
-CLEARSCREEN.
-local resultState is GetResultState(0.25).
+local result is GetResultState(0.25).
+NPrint("estHeight",result["Z"]).
+NPrint("estHSpeed",result["VX"]).
+NPrint("estVSpeed",result["VZ"]).
+NPrint("estTime",result["T"]).
 GetResultState(0.5).
 GetResultState(1).
 GetResultState(2).

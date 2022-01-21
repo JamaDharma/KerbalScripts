@@ -1,23 +1,89 @@
 RUNONCEPATH("0:/lib/Debug").
 RUNONCEPATH("0:/lib/Atmosphere").
 RUNONCEPATH("0:/lib/Ship/Engines").
-RUNONCEPATH("0:/lib/Numerical/MidpointSolver").
+RUNONCEPATH("0:/lib/Numerical/Simulator").
 
-local function SolveQuadratic {
-	parameter pK, vK, aK.
-	return (SQRT(2*aK*pK+vK*vK)+vK)/aK.	
+function NewEntryGuide{
+	parameter accelCalc.
+	parameter bw is body:ANGULARVEL:MAG.
+	parameter br is body:radius.
+	
+	local es is NewSimulator(accelCalc).
+	local adjVY is v(0,5/br,0).
+	local adjVZ is v(0,0,5).
+	
+	local function MakeAdjustedState{
+		parameter st, adj.
+		
+		return lexicon(
+			"T", st["T"],
+			"P", v(0,0,st["P"]:Z),
+			"V", st["V"]+adj,
+			"A", accelCalc(st["T"],st["P"],st["V"]+adj)
+		).
+	}
+	local function GetDistance{
+		parameter sSt, eSt.
+		return ((eSt["P"]-sSt["P"]):Y-(eSt["T"]-sSt["T"])*bw)*br.
+	}
+	local function DistanceAdj{
+		parameter cEntry. 
+		parameter nSt, adj.
+		local adjSS is MakeAdjustedState(nSt,adj).
+		local adjES is es["OneStepToH"](cEntry["Z"],adjSS).
+		local stepDist is GetDistance(adjSS,adjES).
+		local diffDist is cEntry["D"]*(adjES["V"]-cEntry["V"]).
+		return cEntry["X"]+stepDist+diffDist.	
+	}
+	local function ConstructGuide{
+		parameter traj.
+		
+		local endState is traj[traj:LENGTH-1].
+		local i is traj:LENGTH-2.
+		
+		local currEntry is lexicon(
+			"Z", endState["P"]:Z,
+			"V", endState["V"],
+			"X", 0,
+			"D", V(0,0,0)
+		).
+		local guide is list(currEntry).
+
+		until i < 0 {
+			local newSt is traj[i].
+			local newDist is GetDistance(traj[i],endState).
+			local newDistY is DistanceAdj(currEntry,newSt,adjVY).			
+			local newDistZ is DistanceAdj(currEntry,newSt,adjVZ).
+			local dY is (newDistY-newDist)/adjVY:Y.
+			local dZ is (newDistZ-newDist)/adjVZ:Z.
+			local newDrv is v(0,dY,dZ).
+			
+			set i to i-1.
+			set currEntry to lexicon(
+				"Z", newSt["P"]:Z,//altitude
+				"V", newSt["V"],//(_,angVel,vertVel)
+				"X", newDist,//(distace to impact point along sea level)
+				"D", newDrv//derivative of X by V
+			).
+
+			guide:INSERT(0,currEntry).
+		}
+		return guide.
+	}
+	return ConstructGuide@.
 }
 
 function MakeAtmEntrySim{
 	parameter dfc.
 	parameter shipMass is MASS.
-	parameter solverMaker is NewRunge4Solver@.
 	
 	local shipMassK is 1/shipMass.
 	local br is body:radius.
 	local bm is V(0,0,-body:mu).
 	local bw is body:ANGULARVEL:MAG.	
-
+	local es is NewSimulator(Accel@).
+	local egc is NewEntryGuide(Accel@).
+	
 	local function Accel{
 		parameter t,pos,orbV.
 
@@ -70,52 +136,41 @@ function MakeAtmEntrySim{
 		).
 	}
 	
-	local function AtHeightState {
-		parameter st1, st2.
-		
-		local err is st2["P"]:Z-500.
-		if ABS(err) < 1 return ConstructReturnState(st2).
-		
-		local timeErr is SolveQuadratic(st1["P"]:Z-500,st1["V"]:Z,st1["A"]:Z).
-		local newSt is solverMaker(timeErr, Accel@)(st1).
-		
-		return AtHeightState(newSt,newSt).
-	}	
-	
 	local function SimToH{
 		parameter exitH, timeStep.
 		parameter st.
 		
-		local solver to solverMaker(timeStep, Accel@).
-		local oldSt is ConstructInnerState(st).
-		local currSt is oldSt.
-		
-		until currSt["P"]:Z < exitH {
-			set oldSt to currSt.
-			set currSt to solver(oldSt).
-		}
-		
-		return AtHeightState(oldSt,currSt).
+		local startSt is ConstructInnerState(st).
+		local endSt is es["SimToHShort"](exitH,timeStep,startSt).
+		return ConstructReturnState(endSt).
 	}
 	
 	local function SimToT{
 		parameter exitT, timeStep.
 		parameter st.
 		
-		local solver to solverMaker(timeStep, Accel@).
-		local currSt is ConstructInnerState(st).
+		local startSt is ConstructInnerState(st).
+		local endSt is es["SimToT"](exitT,timeStep,startSt).
+		return ConstructReturnState(endSt).
+	}
+	
+	local function EntryGuide{
+		parameter exitH, timeStep.
+		parameter st.
 		
-		until currSt["T"]+timeStep > exitT {
-			set currSt to solver(currSt).
-		}
-		
-		return ConstructReturnState(
-			solverMaker(exitT-currSt["T"], Accel@)(currSt)
-		).
+		local startSt is ConstructInnerState(st).
+		local traj is es["TrajectoryToH"](exitH,timeStep,startSt).
+		return egc(traj).
+	}
+	
+	local function MakeGuideLine{
 	}
 
 	return lexicon(
+		"StateToHGuide", EntryGuide@,
 		"FromStateToH", SimToH@,
-		"FromStateToT", SimToT@,
-		"FromState", SimToH@).
+		"FromStateToT", SimToT@
+	).
 }
+	
+	
