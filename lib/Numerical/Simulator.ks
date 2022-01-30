@@ -64,7 +64,7 @@ function NewSimulator{
 		parameter exitH.
 		parameter currSt.
 		
-		until currSt["P"]:Z+timeStep*currSt["V"]:Z < exitH {
+		until currSt["P"]:Z+dfltStep*currSt["V"]:Z < exitH {
 			set currSt to dfltSolver(currSt).
 		}
 		
@@ -82,6 +82,23 @@ function NewSimulator{
 		}
 		
 		return StepToAlt(exitH,currSt).
+	}
+	
+	local function SimToHByFromListener{
+		parameter exitH, timeStep.
+		parameter currSt.
+		parameter listener.
+		
+		local solver to solverMaker(timeStep, accelCalc).
+		until currSt["P"]:Z+timeStep*currSt["V"]:Z < exitH {
+			set currSt to solver(currSt).
+			listener(currSt).
+		}
+		
+		set currSt to StepToAlt(exitH,currSt).
+		listener(currSt).
+		
+		return currSt.
 	}
 	
 	local function NStepsToHR{
@@ -149,6 +166,7 @@ function NewSimulator{
 		"SimToHLong", SimToHLong@,
 		"SimToHFrom", SimToHFrom@,
 		"SimToHByFrom", SimToHByFrom@,
+		"SimToHByFromListener", SimToHByFromListener@,
 		"NStepsToH", NStepsToHI@,
 		"SimToT", SimToT@
 	).

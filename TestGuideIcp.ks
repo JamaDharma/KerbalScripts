@@ -3,6 +3,8 @@ RUNONCEPATH("0:/lib/Storage").
 RUNONCEPATH("0:/lib/SurfaceAt").
 RUNONCEPATH("0:/lib/Search/TragectoryImpactSearch").
 RUNONCEPATH("0:/lib/Atmosphere").
+RUNONCEPATH("0:/lib/Numerical/AtmosphericEntry/EntryEnvironment").
+RUNONCEPATH("0:/lib/Numerical/AtmosphericEntry/MasterGuideCalculator").
 RUNONCEPATH("0:/lib/Numerical/AtmosphericEntry/AtmosphericEntry").
 
 local targetHeight is 500.
@@ -13,6 +15,8 @@ local altd is 60046.
 local shipMass is 50.56.
 
 local sim is MakeAtmEntrySim(0.01,shipMass).
+local env is NewEntryEnvironment(0.01,shipMass).
+local calc is NewMasterGuideCalculator(env,"Slave1","Slave2").
 
 //CLEARSCREEN.
 
@@ -28,16 +32,19 @@ local startState is lexicon(
 			"X", 0,
 			"Z", altd).
 			
+
 local calcT is time:SECONDS.
 local simRes is sim:FromStateToH(	targetHeight,2,startState).
 set calcT to time:SECONDS-calcT.
 NPrint("SimCalcTime",calcT).
 NPrint("estDist",simRes["X"]).
 set calcT to time:SECONDS.
-local guide is sim:MakeEntryGuide(targetHeight,2,startState).
+local guide is calc(startState).
+sim:InitEntryGuide(guide).
 set calcT to time:SECONDS-calcT.
 NPrint("GuideCalcTime",calcT).
 NPrint("estDist",guide[0]["X"]).
+
 local function TestGuideXZ{
 	parameter tge, eX, eZ.
 	
@@ -72,6 +79,13 @@ TestGuideE(guide[0]).
 TestGuideE(guide[10]).
 TestGuideE(guide[20]).
 TestGuideE(guide[30]).
+PRINT sim:EntryGuide(2,lexicon(
+			"VX", hspd-2,
+			"VZ", vspd+1,
+			"T", 0,
+			"X", 0,
+			"Z", altd-500)).
+sim:MakeEntryGuide(targetHeight,2,startState).			
 PRINT sim:EntryGuide(2,lexicon(
 			"VX", hspd-2,
 			"VZ", vspd+1,

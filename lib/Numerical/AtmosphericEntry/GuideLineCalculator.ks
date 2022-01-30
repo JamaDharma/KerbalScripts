@@ -2,14 +2,19 @@ RUNONCEPATH("0:/lib/Debug").
 RUNONCEPATH("0:/lib/Numerical/Simulator").
 
 function NewGuideLineCalculator{
-	parameter accelCalc.
+	parameter env.
 	parameter timeStep is 2.
-	parameter bw is body:ANGULARVEL:MAG.
-	parameter br is body:radius.
 	
-	local es is NewSimulator(accelCalc,timeStep).
-	local adjVY is v(0,1/br,0).
-	local adjVZ is v(0,0,1).
+	local dY is 1/env["BodyR"].
+	local dZ is 1.
+	local adjVY is v(0,dY,0).
+	local adjVZ is v(0,0,dZ).
+	
+	local accelCalc is env["Accel"].
+	local GetDistance is env["GetDistance"].
+	local sim is NewSimulator(accelCalc,timeStep).
+	local NStepsToH is sim["NStepsToH"].
+	local SimToHFrom is sim["SimToHFrom"].
 	
 	local function MakeAdjustedState{
 		parameter st, adj.
@@ -21,18 +26,12 @@ function NewGuideLineCalculator{
 			"A", accelCalc(st["T"],st["P"],st["V"]+adj)
 		).
 	}
-	
-	local function GetDistance{
-		parameter sSt, eSt.
-		return ((eSt["P"]-sSt["P"]):Y-(eSt["T"]-sSt["T"])*bw)*br.
-	}
-	
-	local nStepsToH is es["NStepsToH"].
+
 	local function DistanceAdj2{
 		parameter cEntry. 
 		parameter nSt, adj.
 		local adjSS is MakeAdjustedState(nSt,adj).
-		local adjES is nStepsToH(2,cEntry["Z"],adjSS).
+		local adjES is NStepsToH(2,cEntry["Z"],adjSS).
 		local stepDist is GetDistance(adjSS,adjES).
 		local diffDist is cEntry["D"]*(adjES["V"]-cEntry["V"]).
 		return stepDist+diffDist.	
@@ -53,20 +52,19 @@ function NewGuideLineCalculator{
 
 		until i < 0 {
 			local newSt is traj[i].
-			local newDist is GetDistance(traj[i],endState).
+			local newDist is GetDistance(newSt,endState).
 			local distDiff is newDist-currEntry["X"].
 			local distDiffY is DistanceAdj2(currEntry,newSt,adjVY).			
 			local distDiffZ is DistanceAdj2(currEntry,newSt,adjVZ).
-			local dY is (distDiffY-distDiff)/adjVY:Y.
-			local dZ is (distDiffZ-distDiff)/adjVZ:Z.
-			local newDrv is v(0,dY,dZ).
+			local drvY is (distDiffY-distDiff)/dY.
+			local drvZ is (distDiffZ-distDiff)/dZ.
 			
 			set i to i-1.
 			set currEntry to lexicon(
 				"Z", newSt["P"]:Z,//altitude
 				"V", newSt["V"],//(_,angVel,vertVel)
 				"X", newDist,//(distace to impact point along sea level)
-				"D", newDrv//derivative of X by V
+				"D", v(0,drvY,drvZ)//derivative of X by V
 			).
 
 			guide:INSERT(0,currEntry).
