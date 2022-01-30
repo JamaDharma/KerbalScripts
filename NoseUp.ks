@@ -46,6 +46,7 @@ local function MakeThrustControl{
 
 SET SHIP:CONTROL:PILOTMAINTHROTTLE TO 0.
 BRAKES ON.
+AG2 ON.
 
 local ed is EnergyDeficit().
 local tc is MakeThrustControl().

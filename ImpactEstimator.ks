@@ -39,8 +39,10 @@ set estimatedImpact to VECDRAW(
 	{ return endGP:ALTITUDEPOSITION(0)-BODY:POSITION. },
 	RED,"",5,true).
 
-UNTIL ALTITUDE < 1000 {
+UNTIL ALTITUDE < 300 {
 	set err to UpdateEstimate().
 	chainLink:SENDMESSAGE(err).
 	WAIT 0.
 }
+
+CLEARVECDRAWS().

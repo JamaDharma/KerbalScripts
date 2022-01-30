@@ -83,7 +83,18 @@ function MakeEncounter{
 	
 	PrintInfo(search:TrgTime()).
 }
+FUNCTION node_from_vector {//have not tested for different SOIs
+    PARAMETER vecTarget,nodeTime.
+    LOCAL localBody IS ORBITAT(SHIP,nodeTime):BODY.
+    LOCAL vecNodePrograde IS VELOCITYAT(SHIP,nodeTime):ORBIT:NORMALIZED.
+    LOCAL vecNodeNormal IS VCRS(vecNodePrograde,(POSITIONAT(SHIP,nodeTime) - localBody:POSITION):NORMALIZED):NORMALIZED.
+    LOCAL vecNodeRadial IS VCRS(vecNodeNormal,vecNodePrograde).
 
+    LOCAL nodePrograde IS VDOT(vecTarget,vecNodePrograde).
+    LOCAL nodeNormal IS VDOT(vecTarget,vecNodeNormal).
+    LOCAL nodeRadial IS VDOT(vecTarget,vecNodeRadial).
+    RETURN NODE(nodeTime,nodeRadial,nodeNormal,nodePrograde).
+}
 function MakeMeetUpNode{
 	local meetUpBurn is RelativeVelocity(mainTime).
 	local meetUpNode is NODE(mainTime:SECONDS,0,0,1).

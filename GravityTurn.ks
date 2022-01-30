@@ -25,12 +25,15 @@ LOCK STEERING TO HEADING(90, 90 - pitchLock).
 
 STAGE.
 
-UNTIL AIRSPEED > 10 {
+UNTIL AIRSPEED > 5 {
 	set pitchLock to pitchControl:OutputControl(AIRSPEED).
 	WAIT 0.
 }
+local mlt is 1/20.
 UNTIL pitchControl:StateControl() {
-	set pitchLock to pitchControl:OutputControl(AIRSPEED)*2-ProgradePitch().
+	local as is AIRSPEED.
+	local oc is pitchControl:OutputControl(as).
+	set pitchLock to oc+mlt*as*(oc-ProgradePitch()).
 	WAIT 0.
 }
 

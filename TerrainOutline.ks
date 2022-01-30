@@ -1,5 +1,5 @@
 function DrawAxes {
-
+	CLEARVECDRAWS().
 	set drawRoll to VECDRAW(
 		V(0,0,0),
 		{ return (ship:FACING:STARVECTOR)*5. },
@@ -32,7 +32,7 @@ function DrawAxes {
 LOCAL localBody IS ship:BODY.
 LOCAL basePos IS ship:POSITION.
 
-LOCAL upVec IS GetUpVec(ship).
+LOCAL upVec IS UP:VECTOR.
 local forVec is VXCL(upVec,ship:FACING:FOREVECTOR):NORMALIZED.
 local offset is -20.
 

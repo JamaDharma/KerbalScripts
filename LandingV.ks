@@ -13,5 +13,6 @@ LOCK  STEERING TO SRFRETROGRADE.
 ImpactBurn(landingSpeed,SetThrust@).
 
 LOCK  STEERING TO UP.
+RCS ON.
 WAIT 5.
 SAS ON.

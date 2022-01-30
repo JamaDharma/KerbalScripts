@@ -129,7 +129,7 @@ local function PrepareForBurn{
 	
 	HUDTEXT("Timewarp.", 5, 2, 50, blue, true).
 	local warpTime is TIME + burn:ETA - burnTime/2 - 30.
-	WARPTO(warpTime).
+	WARPTO(warpTime:SECONDS).
 	WAIT UNTIL TIME > warpTime.
 }
 

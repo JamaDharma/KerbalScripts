@@ -1,7 +1,7 @@
 RUNONCEPATH("0:/lib/Debug").
 RUNONCEPATH("0:/lib/Defaults").
 RUNONCEPATH("0:/lib/BurnExecutor").
-parameter bodyName is "Mun", tgtPeriapsis is 10000.
+parameter bodyName is "Mun", tgtPeriapsis is 25000.
 SAS OFF.
 local tgtBody is BODY(bodyName).
 local tc is MakeThrustControl(tgtPeriapsis,-1).
