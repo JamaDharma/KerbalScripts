@@ -63,6 +63,20 @@ function NewEntryEnvironment{
 		).
 	}
 	
+	local function CurrentStateInner{
+		local cz is ALTITUDE.
+		local cvx is GROUNDSPEED.
+		local cr is br+cz.
+		local ip is V(0,0,cz).
+		local iv is V(cvx+cr*bw,cvx/cr+bw,VERTICALSPEED).
+		return lexicon(
+			"T", 0,
+			"P", ip,
+			"V", iv,
+			"A", Accel(0,ip,iv)
+		).
+	}
+	
 	local function GetDistance{
 		parameter sSt, eSt.
 		return ((eSt["P"]-sSt["P"]):Y-(eSt["T"]-sSt["T"])*bw)*br.
@@ -75,6 +89,7 @@ function NewEntryEnvironment{
 		"DragK", dragK,
 		"Accel", Accel@,
 		"ConstructReturnState", ConstructReturnState@,
+		"CurrentStateInner", CurrentStateInner@,
 		"ConstructInnerState", ConstructInnerState@,
 		"GetDistance", GetDistance@
 	).

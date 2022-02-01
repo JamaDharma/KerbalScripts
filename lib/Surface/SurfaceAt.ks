@@ -1,4 +1,4 @@
-RUNONCEPATH("0:/lib/Surface").
+RUNONCEPATH("0:/lib/Surface/Surface").
 
 LOCAL rotationalDir IS VDOT(SHIP:BODY:NORTH:FOREVECTOR,SHIP:BODY:ANGULARVEL). //the number of radians the body will rotate in one second
 FUNCTION ground_track {  //returns the geocoordinates of the ship at a given time(UTs) adjusting for planetary rotation over time

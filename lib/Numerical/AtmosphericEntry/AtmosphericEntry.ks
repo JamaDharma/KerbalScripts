@@ -9,14 +9,22 @@ function MakeAtmEntrySim{
 	
 	local env is NewEntryEnvironment(dragK,shipMass).
 	local Accel is env["Accel"].
+	local GetDistance is env["GetDistance"].
 	local ConstructReturnState is env["ConstructReturnState"].
+	local CurrentStateInner is env["CurrentStateInner"].
 	local ConstructInnerState is env["ConstructInnerState"].
-	local Accel is env["Accel"].
 	
 	local sim is NewSimulator(Accel).
 	local NStepsToH is sim["NStepsToH"].
 	local SimToHFrom is sim["SimToHFrom"].
 
+	local function CurrentIf0{
+		parameter st.
+		if st = 0 
+			return CurrentStateInner().
+		return ConstructInnerState(st).
+	}
+	
 	local function SimToH{
 		parameter exitH, timeStep.
 		parameter st.
@@ -43,9 +51,9 @@ function MakeAtmEntrySim{
 	}
 	local function MakeEntryGuide{
 		parameter exitH, timeStep.
-		parameter st.
+		parameter st is 0.
 		
-		local startSt is ConstructInnerState(st).
+		local startSt is CurrentIf0(st).
 		local traj is sim["TrajectoryToH"](exitH,timeStep,startSt).
 		local glData is NewGuideLineCalculator(env,timeStep)(traj).
 		
@@ -53,13 +61,13 @@ function MakeAtmEntrySim{
 		return glData.
 	}
 	local function EntryGuide{
-		parameter timeStep, st.
-		
-		local startSt is ConstructInnerState(st).
+		parameter timeStep, st is 0.
+		if guideLineDataProvider = 0 return 0.
+		local startSt is CurrentIf0(st).
 		local guideE is guideLineDataProvider(startSt["P"]:Z).
 		local endSt is sim["SimToHByFrom"](guideE["Z"],timeStep,startSt).
-		local guideX is guideE["X"]+guideE["D"]*(endSt["V"]-guideE["V"])..
-		local stepX is ConstructReturnState(endSt)["X"].
+		local guideX is guideE["X"]+guideE["D"]*(endSt["V"]-guideE["V"]).
+		local stepX is GetDistance(startSt,endSt).
 		return guideX+stepX.
 	}
 
