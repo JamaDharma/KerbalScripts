@@ -84,6 +84,19 @@ function NewSimulator{
 		return StepToAlt(exitH,currSt).
 	}
 	
+	local function SimByFromCondition{
+		parameter timeStep.
+		parameter currSt.
+		parameter condition.
+		
+		local solver to solverMaker(timeStep, accelCalc).
+		until condition(currSt) {
+			set currSt to solver(currSt).
+		}
+		
+		return currSt.
+	}
+	
 	local function SimToHByFromListener{
 		parameter exitH, timeStep.
 		parameter currSt.
@@ -166,6 +179,7 @@ function NewSimulator{
 		"SimToHLong", SimToHLong@,
 		"SimToHFrom", SimToHFrom@,
 		"SimToHByFrom", SimToHByFrom@,
+		"SimByFromCondition", SimByFromCondition@,
 		"SimToHByFromListener", SimToHByFromListener@,
 		"NStepsToH", NStepsToHI@,
 		"SimToT", SimToT@

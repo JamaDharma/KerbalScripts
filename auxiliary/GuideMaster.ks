@@ -1,5 +1,5 @@
 RUNONCEPATH("0:/lib/Storage").
-RUNONCEPATH("0:/lib/Numerical/AtmosphericEntry/MasterGuideCalculator").
+RUNONCEPATH("0:/lib/Numerical/Entry/MasterGuideCalculator").
 
 local dk is ShipTypeStorage():GetValue("DragK").
 local env is NewEntryEnvironment(dk, MASS).

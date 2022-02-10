@@ -1,7 +1,7 @@
 RUNONCEPATH("0:/lib/Debug").
 RUNONCEPATH("0:/lib/Numerical/Simulator").
-RUNONCEPATH("0:/lib/Numerical/AtmosphericEntry/EntryEnvironment").
-RUNONCEPATH("0:/lib/Numerical/AtmosphericEntry/GuideLineCalculator").
+RUNONCEPATH("0:/lib/Numerical/Entry/EntryEnvironment").
+RUNONCEPATH("0:/lib/Numerical/Entry/GuideLineCalculator").
 
 function MakeAtmEntrySim{
 	parameter dragK.
@@ -29,7 +29,7 @@ function MakeAtmEntrySim{
 		parameter exitH, timeStep.
 		parameter st.
 		
-		local startSt is ConstructInnerState(st).
+		local startSt is CurrentIf0(st).
 		local endSt is sim["SimToHByFrom"](exitH,timeStep,startSt).
 		return ConstructReturnState(endSt).
 	}

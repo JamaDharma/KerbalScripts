@@ -1,6 +1,6 @@
 RUNONCEPATH("0:/lib/Debug").
 RUNONCEPATH("0:/lib/Numerical/Simulator").
-RUNONCEPATH("0:/lib/Numerical/AtmosphericEntry/EntryEnvironment").
+RUNONCEPATH("0:/lib/Numerical/Entry/EntryEnvironment").
 
 function SlaveGuideCalculator{
 

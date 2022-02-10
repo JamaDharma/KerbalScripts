@@ -32,7 +32,11 @@ global KerbinAT is list(
 	list(25000,0.015),
 	list(30000,0.006),
 	list(40000,0.001),
-	list(50000,0.000),	 
+	list(50000,0.0002),	 
+	list(54000,0.0001),	 
+	list(59000,0.00004),	 
+	list(65000,0.00001),	 
+	list(70000,0.000),	 
 	list(99999,0.000)	 
 ).
 //assumes sorted list
@@ -78,6 +82,7 @@ function MakeStatefulInterpolator{
 	UpdateState().
 	return GetValue@.
 }
+
 function AtmDensity{
 	parameter dt.
 	parameter cAlt.
@@ -101,5 +106,17 @@ function MakeDragForceCalculator{
 		parameter spd.
 
 		return getSpdK(spd)*getDensity(cAlt)*dragK*spd*spd.
+	}.
+}
+
+function MakeDragFactorCalculator{
+	parameter dragT.
+	local getSpdK is MakeStatefulInterpolator(SpeedKT).
+	local getDensity is MakeStatefulInterpolator(dragT).
+	return {
+		parameter cAlt.
+		parameter spd.
+
+		return getSpdK(spd)*getDensity(cAlt)*spd*spd.
 	}.
 }

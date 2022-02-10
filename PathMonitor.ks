@@ -2,24 +2,15 @@ RUNONCEPATH("0:/lib/Debug").
 RUNONCEPATH("0:/lib/AtmosphericEntry").
 RUNONCEPATH("0:/lib/SurfaceAt").
 
-local fName is "PathLog.txt".
-local timestep is 0.25.
-local pad is BODY:GEOPOSITIONLATLNG(-0.0972077889151947,-74.5576774701971).
-
-function InverseControl {
-	LIST PARTS IN  partList.	
-	local fName is "authority limiter".
-	for prt in partList
-	if prt:HASMODULE("ModuleControlSurface") {
-		
-		local mdl is prt:getmodule("ModuleControlSurface").
-		
-		if mdl:HasField(fName){
-			local angle is mdl:getfield(fName).
-			mdl:setfield(fName, -100).
-			PRINT angle.
-		}
-	}
+local fName is "PathLogLightChute.txt".
+local startTime is 0.
+local path is list().
+local function CaptureState{
+	return lexicon(
+		"T", TIME - startTime,
+		"Z", ALTITUDE,
+		"V", VERTICALSPEED
+	).
 }
 
 function StartRecording {
@@ -44,9 +35,9 @@ function StartRecording {
 		local dt is t - lt.
 		local dragK is (lvx-vx)*MASS/(dt*AtmDensity(KerbinAT,lz)*lspd*lvx).
 		
-		local result is "T: " + ROUND(lt,3)
-						+ "    VX: " + ROUND(lvx,1)
-						+ "    DragK: " + ROUND(dragK,5).
+		local result is "T: 	" + ROUND(lt,3)
+						+ "	 VX: 	" + ROUND(lvx,1)
+						+ "	 DragK: 	" + ROUND(dragK,5).
 		LOG result to fName.
 		PRINT result.
 		
@@ -59,11 +50,13 @@ function StartRecording {
 	}
 }
 
-InverseControl().
-WAIT UNTIL AIRSPEED < 250.
-ON (ALTITUDE < 2000) {
-	CHUTES ON.
-	LOG "CHUTES" to fName.
-	PRINT "CHUTES".
-}.
-StartRecording().
+LOCK STEERING to UP.
+WAIT UNTIL ALTITUDE < 2000.
+WAIT 0.
+set startTime to TIME.
+CHUTES ON.
+path:ADD(CaptureState()).
+UNTIL TIME-startTime > 30 {
+	WAIT 0.333.
+	path:ADD(CaptureState()).
+}

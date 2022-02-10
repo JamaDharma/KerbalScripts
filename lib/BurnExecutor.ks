@@ -15,6 +15,23 @@ function MakeThrustControl{
 		return currentThrust.
 	}.
 }
+function BurnControlBase{
+	parameter burn.
+	local bl is StageCalculator():BurnTime(burn:DELTAV:MAG).
+	return lexicon(
+		"Burn", burn,
+		"BurnTiming", bl/2,
+		"BurnLength", bl
+	).
+}
+
+function BurnControlThrust{
+	parameter burn, tc.
+	local this is BurnControlBase(burn).
+	this:ADD("StateControl", { return tc() <= 0.}).
+	this:ADD("ThrustControl", tc).
+	return this.
+}
 
 function NodeBurnControl{
 	parameter burn.
@@ -25,12 +42,10 @@ function NodeBurnControl{
 		return dvCalc:BurnTime(burn:DELTAV:MAG).
 	}
 	
-	local this is lexicon(
-		"Burn", burn,
-		"StateControl", MainBurn@,
-		"SteerControl", { return burn:DELTAV.},
-		"ThrustControl", { return burn:DELTAV:MAG*MASS/MAXTHRUST.}
-	).
+	local this is BurnControlBase(burn).
+	this:ADD("StateControl", MainBurn@).
+	this:ADD("SteerControl", { return burn:DELTAV.}).
+	this:ADD("ThrustControl", { return burn:DELTAV:MAG*MASS/MAXTHRUST.}).
 	
 	function MainBurn{
 		if GetBurnTime(burn) < 1 ToFinalization().
@@ -55,12 +70,10 @@ function CustomBurnControl{
 		return dvCalc:BurnTime(burn:DELTAV:MAG).
 	}
 	
-	local this is lexicon(
-		"Burn", burn,
-		"StateControl", MainBurn@,
-		"SteerControl", { return burn:DELTAV.},
-		"ThrustControl", tc
-	).
+	local this is BurnControlBase(burn).
+	this:ADD("StateControl", MainBurn@).
+	this:ADD("SteerControl", { return burn:DELTAV.}).
+	this:ADD("ThrustControl", tc).
 	
 	function MainBurn{
 		if GetBurnTime(burn) < 1 or tc() < 1 ToFinalization().
@@ -79,11 +92,7 @@ function CustomBurnControl{
 function GradeBurnControl{
 	parameter burn, tc.
 	
-	local this is lexicon(
-		"Burn", burn,
-		"StateControl", { return tc() <= 0.},
-		"ThrustControl", tc
-	).
+	local this is BurnControlThrust(burn,tc).
 	
 	if(burn:PROGRADE > 0)
 		this:ADD("SteerControl", { return PROGRADE.}).
@@ -95,40 +104,34 @@ function GradeBurnControl{
 function ProgradeBurnControl{
 	parameter burn, tc.
 	
-	local this is lexicon(
-		"Burn", burn,
-		"StateControl", { return tc() <= 0.},
-		"SteerControl", { return PROGRADE.},
-		"ThrustControl", tc
-	).
+	local this is BurnControlThrust(burn,tc).
+	this:ADD("SteerControl", { return PROGRADE.}).
 	
 	return this.
 }
 function RetrogradeBurnControl{
 	parameter burn, tc.
 	
-	local this is lexicon(
-		"Burn", burn,
-		"StateControl", { return tc() <= 0.},
-		"SteerControl", { return RETROGRADE.},
-		"ThrustControl", tc
-	).
+	local this is BurnControlThrust(burn,tc).
+	this:ADD("SteerControl", { return RETROGRADE.}).
 	
 	return this.
 }
 
 local function PrepareForBurn{
-	parameter burn, burnTime.
+	//node,burnTiming, burnLength
+	parameter burn, bt, bl.
 
 	LOCK STEERING TO burn:DELTAV.
 
-	HUDTEXT(ROUND(burn:ETA - burnTime/2) + "s to maneuver. Burn time " + ROUND(burnTime) + "s.", 5, 2, 50, green, true).
+	HUDTEXT(ROUND(burn:ETA - bt) + "s to maneuver. Burn time " 
+		+ ROUND(bl) + "s.", 5, 2, 50, green, true).
 	WAIT UNTIL VANG(burn:DELTAV, SHIP:FACING:VECTOR) < 1.
 	
 	UNLOCK STEERING.
 	
 	HUDTEXT("Timewarp.", 5, 2, 50, blue, true).
-	local warpTime is TIME + burn:ETA - burnTime/2 - 30.
+	local warpTime is TIME + burn:ETA - bt - 30.
 	WARPTO(warpTime:SECONDS).
 	WAIT UNTIL TIME > warpTime.
 }
@@ -136,14 +139,14 @@ local function PrepareForBurn{
 function BurnExecutor{
 	parameter burnControl.
 	local burn is burnControl:Burn.
-	local burnTime is StageCalculator():BurnTime(burn:DELTAV:MAG).
+	local bt is burnControl:BurnTiming.
 	
-	PrepareForBurn(burn, burnTime).
+	PrepareForBurn(burn, bt, burnControl:BurnLength).
 
 	local steeringLock is burnControl:SteerControl().
 	LOCK STEERING TO steeringLock.
 	
-	UNTIL burn:ETA < burnTime/2{
+	UNTIL burn:ETA < bt{
 		set steeringLock to  burnControl:SteerControl().
 		WAIT 0.
 	}

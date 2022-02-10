@@ -1,5 +1,4 @@
 RUNONCEPATH("0:/lib/Debug").
-RUNONCEPATH("0:/lib/Numerical/MidpointSolver").
 RUNONCEPATH("0:/lib/Numerical/AtmosphericEntry/AtmosphericEntry").
 
 function InverseControl {
@@ -39,6 +38,6 @@ UNTIL false {
 	local pQ is 2000*constant:AtmToKPa*newState["Q"]/newState["V"]^2.
 	local pE is AtmDensity(KerbinAT,newState["Z"]).
 	
-	NPrint("pQ",pQ).
-	NPrint("pE",pE).
+	NPrint("pQ",pQ,6).
+	NPrint("pE",pE,6).
 }

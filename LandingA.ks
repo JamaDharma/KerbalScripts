@@ -75,12 +75,12 @@ function SuicideBurn {
 	LOCK STEERING to SRFRETROGRADE.
 	UNTIL (RealAltitude() < 0) {
 		SuicideBurnControl().
-		WAIT 0.01.
+		WAIT 0.
 	}
 	
 	UNTIL (SHIP:STATUS = "LANDED" or SHIP:STATUS = "SPLASHED") {
 		TouchDownControl().
-		WAIT 0.01.
+		WAIT 0.
 	}
 	set thrustLevel to 0.
 	WAIT 3.
@@ -104,13 +104,11 @@ ON (AIRSPEED < landingSpeed) {
 	RCS ON.
 }
 
-InverseControl().
+
 SAS OFF.
 RCS OFF.
 BlowTrusters().
 
-BRAKES ON.
-BleedSpeed().
 
 //GEAR ON.
 SuicideBurn().

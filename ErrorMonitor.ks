@@ -1,6 +1,5 @@
 RUNONCEPATH("0:/lib/Debug").
-RUNONCEPATH("0:/lib/SurfaceAt").
-RUNONCEPATH("0:/lib/Numerical/MidpointSolver").
+RUNONCEPATH("0:/lib/Surface/SurfaceAt").
 RUNONCEPATH("0:/lib/Numerical/AtmosphericEntry/AtmosphericEntry").
 
 
@@ -26,8 +25,7 @@ WAIT 0.5.
 global pad is BODY:GEOPOSITIONLATLNG(-0.0972077889151947,-74.5576774701971).
 
 local tgt is pad.
-local dfc is MakeDragForceCalculator(KerbinAT,0.01).
-local sim is MakeAtmEntrySim(dfc).
+local sim is MakeAtmEntrySim(0.01).
 
 function GetState{
 	WAIT 0.
@@ -44,7 +42,7 @@ function GetState{
 
 function GetResultState{
 	local sState is GetState().
-	local result is sim:FromState(500,0.5,sState).
+	local result is sim:FromStateToH(100,1,sState).
 	local err is GlobeDistance(tgt,sState["GP"])-result["X"].
 	
 	NPrintL(lexicon("err",err,"spd",sState["V"])).
@@ -52,6 +50,6 @@ function GetResultState{
 	return result.
 }
 UNTIL false {
-	WAIT 0.84.
+	WAIT 0.5.
 	GetResultState().	
 }

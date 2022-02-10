@@ -39,6 +39,7 @@ function NewEntryEnvironment{
 		return lexicon(
 			"T", st["T"],
 			"X", (st["P"]:Y-bw*st["T"])*br,
+			"Y", st["P"]:Y,
 			"Z", st["P"]:Z,
 			"VX", (st["V"]:Y-bw)*cr,
 			"VXO", st["V"]:Y*cr,
@@ -49,12 +50,14 @@ function NewEntryEnvironment{
 	local function ConstructInnerState{
 		parameter st.
 		local cr is br+st["Z"].
-		local ip is V(st["X"],st["X"]/br,st["Z"]).
-		local iv is 0.
-		if st:HASKEY("VXO") 
-			set iv to V(st["VXO"],st["VXO"]/cr,st["VZ"]).
-		else
-			set iv to V(st["VX"]+cr*bw,st["VX"]/cr+bw,st["VZ"]).
+		local ip is
+			choose V(st["X"],st["Y"],st["Z"]) 
+			if st:HASKEY("Y")
+			else V(st["X"],st["X"]/br+bw*st["T"],st["Z"]).
+		local iv is 
+			choose V(st["VXO"],st["VXO"]/cr,st["VZ"]) 
+			if st:HASKEY("VXO")
+			else V(st["VX"]+cr*bw,st["VX"]/cr+bw,st["VZ"]).
 		return lexicon(
 			"T", st["T"],
 			"P", ip,
@@ -65,10 +68,11 @@ function NewEntryEnvironment{
 	
 	local function CurrentStateInner{
 		local cz is ALTITUDE.
+		local cvz is VERTICALSPEED.
 		local cvx is GROUNDSPEED.
 		local cr is br+cz.
 		local ip is V(0,0,cz).
-		local iv is V(cvx+cr*bw,cvx/cr+bw,VERTICALSPEED).
+		local iv is V(cvx+cr*bw,cvx/cr+bw,cvz).
 		return lexicon(
 			"T", 0,
 			"P", ip,
