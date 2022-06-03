@@ -1,6 +1,7 @@
+//Landing error monitor
 RUNONCEPATH("0:/lib/Debug").
 RUNONCEPATH("0:/lib/Surface/SurfaceAt").
-RUNONCEPATH("0:/lib/Numerical/AtmosphericEntry/AtmosphericEntry").
+RUNONCEPATH("0:/lib/Numerical/Entry/AtmosphericEntry").
 
 
 

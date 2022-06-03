@@ -1,5 +1,6 @@
+//Vertical only drag monitor?
 RUNONCEPATH("0:/lib/Debug").
-RUNONCEPATH("0:/lib/Numerical/AtmosphericEntry/AtmosphericEntry").
+RUNONCEPATH("0:/lib/Numerical/Entry/AtmosphericEntry").
 
 set TERMINAL:WIDTH to 80.
 local dfc is MakeDragFactorCalculator(KerbinAT).

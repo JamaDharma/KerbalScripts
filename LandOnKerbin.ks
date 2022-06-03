@@ -12,7 +12,7 @@ RUNONCEPATH("0:/lib/BurnExecutor").
 //0.007 for medium
 parameter dk is ShipTypeStorage():GetValue("DragK").
 
-CORE:PART:CONTROLFROM().
+//CORE:PART:CONTROLFROM().
 
 local tgt is pad.
 local massAfterBurn is MassAfter(NEXTNODE:DELTAV:MAG).
@@ -53,7 +53,7 @@ local function AdjustTime{
 	NPRINT("err",err).
 	local timeAdj is err*(ALTITUDE+br)/(br*GROUNDSPEED).
 	set NEXTNODE:ETA to NEXTNODE:ETA + timeAdj.
-	NPRINT("timeAdj",timeAdj/60,3).
+	NPRINT("timeAdj(min)",timeAdj/60,3).
 	WAIT 0.
 	return err.
 }

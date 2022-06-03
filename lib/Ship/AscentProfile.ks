@@ -58,6 +58,9 @@ function CalculateAscentProfile{
 	
 	function ProfileHarvester{
 		parameter vx,vz,cml.
+		//twr < 1?
+		if vx < 0 or vz < 0 RETURN true.
+		
 		if vx*vx + vz*vz <= itr:VALUE*itr:VALUE {
 			profile:PUSH(list(SQRT(vx*vx + vz*vz),ARCTAN2(vx,vz))).
 			return not itr:NEXT().

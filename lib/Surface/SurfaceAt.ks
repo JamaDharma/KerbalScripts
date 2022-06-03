@@ -44,3 +44,41 @@ function HorVelAt{
 	local upV is (p - ship:BODY:POSITION).
 	return list(VXCL(upV,vel:ORBIT),VXCL(upV,vel:SURFACE)).
 }
+
+function NewSurfaceAtCalculator{
+	parameter shipBody is ship:BODY.
+	
+	local bodyRadius is shipBody:RADIUS.
+	local bodyAngVelDEG is 360/shipBody:ROTATIONPERIOD.
+	local distPerDeg is constant:DegToRad*bodyRadius.
+
+	local function SurfacePositionAt{
+		parameter pos.
+		parameter t.
+		local bp is shipBody:POSITION.
+		return AngleAxis(bodyAngVelDEG*t,shipBody:ANGULARVEL)*(pos-bp)+bp.
+	}
+	//distance along sea level between projections
+	local function GlobeDistanceP{
+		parameter pos1,pos2.
+		local bp is shipBody:POSITION.
+		return distPerDeg*VANG(pos1-bp,pos2-bp).
+	}
+	//distance from position to set surface target at set time
+	local function MakeDistToTimeTargetCalculator{
+		parameter tOnTgt.
+		parameter tgt.
+		
+		return { parameter pos.
+			local bp is shipBody:POSITION.
+			local rot is AngleAxis(
+				bodyAngVelDEG*(tOnTgt-TIME):SECONDS,
+				shipBody:ANGULARVEL).
+			return distPerDeg*VANG(pos-bp,rot*(tgt:POSITION-bp)).
+		}.
+	}
+	
+	return lexicon(
+		"MakeDistToTimeTargetCalculator", MakeDistToTimeTargetCalculator@
+	).
+}

@@ -1,5 +1,5 @@
 RUNONCEPATH("0:/lib/Debug").
-RUNONCEPATH("0:/lib/Numerical/AtmosphericEntry/AtmosphericEntry").
+RUNONCEPATH("0:/lib/Numerical/Entry/AtmosphericEntry").
 
 function InverseControl {
 	LIST PARTS IN  partList.	
