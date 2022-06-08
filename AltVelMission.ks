@@ -1,4 +1,5 @@
-parameter tgtAlt is 10000.
+parameter tgtAlt is 10.
+set tgtAlt to tgtAlt*1000.
 parameter tgtVel is 500.
 parameter margin is 20.
 
