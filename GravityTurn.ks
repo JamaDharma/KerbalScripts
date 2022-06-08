@@ -10,13 +10,21 @@ set alt45 to alt45*1000.
 //desired apoapsis, km
 parameter apoap is 75.
 set apoap to apoap*1000.
+//desired inclination
+parameter incl is 0.
+local azimuth is {RETURN 90.}.
+if incl > 0	LOCK azimuth to ARCSIN(COS(incl)/COS(GEOPOSITION:lat)).
+if incl < 0 LOCK azimuth to 180-ARCSIN(COS(incl)/COS(GEOPOSITION:lat)).
+
+PRINT "Apoapsis height is "+apoap+" and launch azimuth is "+azimuth.
+
 
 function ProgradePitch{
 	return VANG(UP:VECTOR,SRFPROGRADE:VECTOR).
 }
-
 set pitchLock to 0.
-//CORE:PART:CONTROLFROM().
+
+if(CORE:PART:HASMODULE("ModuleCommand")) CORE:PART:CONTROLFROM().
  
 PRINT "Calculating ascent profile...".
 PRINT "Goal is 45 at "+alt45.
@@ -28,7 +36,7 @@ PRINT "Press any key to proceed".
 WaitKey().
 
 set thrustLevel to 1.
-LOCK STEERING TO HEADING(90, 90 - pitchLock).
+LOCK steering TO HEADING(azimuth, 90 - pitchLock).
 
 STAGE.
 
