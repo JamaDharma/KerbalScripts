@@ -34,13 +34,14 @@ function NewTerminalVelocityLandingControl {
 
     function Update {
         set tSolver to NewChuteSolver(landingGravity,accel).
-        local minVel is MAX(0,-tSolver:Velocity(maxBurnTime)).
-        NPrint("Minimum landing speed", minVel).
-        if landingSpeed < minVel {
+        local burnTime is tSolver:TimeOfV(landingSpeed).
+        NPrint("Required burn lenght", burnTime).
+        if maxBurnTime < burnTime {
+            NPrint("Maximum burn lenght", maxBurnTime).
+            local minVel is MAX(0,-tSolver:Velocity(maxBurnTime)).
+            NPrint("Minimum landing speed", minVel).
             set burnHeight to tSolver:Distance(maxBurnTime).
         } else {
-            local burnTime is tSolver:TimeOfV(landingSpeed).
-            NPrint("Burn lenght", burnTime).
             NPrint("Final velocity", tSolver:Velocity(burnTime)).
             set burnHeight to tSolver:Distance(burnTime).
         }
