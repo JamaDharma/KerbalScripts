@@ -1,11 +1,13 @@
 RUNONCEPATH("0:/lib/Debug").
 RUNONCEPATH("0:/lib/Targeting").
+RUNONCEPATH("0:/lib/Aircraft/Steering").
 
 local targetLock is false.
 local selectedTarget is "nothing".
+local GetCompas is {RETURN compasLock.}.
 local function ToggleTargetLock{
 	if targetLock {
-		UNLOCK compasLock.
+		set GetCompas to {RETURN compasLock.}.
 		set targetLock to false.
 		set compasLock to Compas().
 		PRINT "Compass unlocked!".
@@ -16,14 +18,14 @@ local function ToggleTargetLock{
 	if tgt:LENGTH = 0 return.
 	
 	set selectedTarget to tgt[0].
-	LOCK compasLock to selectedTarget:HEADING.
+	set GetCompas to {RETURN selectedTarget:HEADING.}.
 	set targetLock to true.
 	PRINT "Compass locked to target!".
 }
 
 local function SetCompas{
 	parameter cmp.
-	if targetLock { PRINT "Compass locked!". return. }
+	if targetLock { PRINT "Compass locked -h eading not changed!". return. }
 	set compasLock to cmp.
 }
 
@@ -66,6 +68,9 @@ WHEN terminal:input:haschar THEN {
 		ToggleTargetLock().
 	} else if ch = terminal:input:ENDCURSOR {
 		set exit to true.
+	} else if ch = "i" {
+		local dst is selectedTarget:DISTANCE.
+		NPrintMany("Distance",dst,"ETA",dst/AIRSPEED).
 	} else {
 		SetDefaults().
 		NPrint("New heading",compasLock).
@@ -80,8 +85,13 @@ SetDefaults().
 
 SAS OFF.
 
-LOCK STEERING TO HEADING(compasLock,pitchLock,rollLock).
+local dsc is NewDirSteeringController().
+LOCK STEERING TO dsc(HEADING(GetCompas(),pitchLock,rollLock)).
 
-WAIT UNTIL exit.
+UNTIL exit {
+	if targetLock AND selectedTarget:DISTANCE <  500 ToggleTargetLock().
+}
 
 SAS ON.
+
+WAIT 1.
