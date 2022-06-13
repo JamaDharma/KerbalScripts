@@ -13,7 +13,7 @@ local function AltAtP{
 
 local function AltAtT{
 	parameter t.
-	return AltAtP().
+	return AltAtP(POSITIONAT(SHIP,t)).
 }
 
 local function SeaAltAtT{
