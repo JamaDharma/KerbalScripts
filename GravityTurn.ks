@@ -2,6 +2,9 @@ RUNONCEPATH("0:/lib/Defaults").
 RUNONCEPATH("0:/lib/Debug").
 RUNONCEPATH("0:/lib/Orbit").
 RUNONCEPATH("0:/lib/Ascend").
+RUNONCEPATH("0:/lib/Math/LaunchAzimuth").
+RUNONCEPATH("0:/lib/Math/StringToNum").
+RUNONCEPATH("0:/lib/Ship/Staging").
 RUNONCEPATH("0:/lib/Ship/AscentProfile").
 
 //altitude at wich desired pitch is 45 degrees, km
@@ -12,12 +15,14 @@ parameter apoap is 75.
 set apoap to apoap*1000.
 //desired inclination
 parameter incl is 0.
+//stageN to enable staging N times
+parameter stg is "noStaging".
+
 local azimuth is {RETURN 90.}.
-if incl > 0	LOCK azimuth to ARCSIN(COS(incl)/COS(GEOPOSITION:lat)).
-if incl < 0 LOCK azimuth to 180-ARCSIN(COS(incl)/COS(GEOPOSITION:lat)).
+if incl <> 0 set azimuth to NewLaunchAzimuthCalculator(incl).
 
-PRINT "Apoapsis height is "+apoap+" and launch azimuth is "+azimuth.
-
+PRINT "Apoapsis height is "+apoap+" and launch azimuth is "+azimuth().
+PRINT stg.
 
 function ProgradePitch{
 	return VANG(UP:VECTOR,SRFPROGRADE:VECTOR).
@@ -25,7 +30,7 @@ function ProgradePitch{
 set pitchLock to 0.
 
 if(CORE:PART:HASMODULE("ModuleCommand")) CORE:PART:CONTROLFROM().
- 
+
 PRINT "Calculating ascent profile...".
 PRINT "Goal is 45 at "+alt45.
 local profile is CalculateAscentProfile(alt45).
@@ -36,9 +41,14 @@ PRINT "Press any key to proceed".
 WaitKey().
 
 set thrustLevel to 1.
-LOCK steering TO HEADING(azimuth, 90 - pitchLock).
+LOCK steering TO HEADING(azimuth(), 90 - pitchLock).
 
 STAGE.
+
+if stg:STARTSWITH("stage") {
+	local stageNum is str_to_num(stg:REMOVE(0,5)).
+	StagingTriggerController(stageNum).
+}
 
 UNTIL AIRSPEED > 5 {
 	set pitchLock to pitchControl:OutputControl(AIRSPEED).
@@ -66,14 +76,16 @@ UNTIL ALT:APOAPSIS > apoap {
 set thrustLevel to 0.
 UNLOCK steering.
 
-local bc is StageCalculator().
+
 local bdv is BurnForPeriapsis(71000).
-local bt is bc:BurnTime(bdv).
+
 NPrint("Orbit stabilization burn",bdv).
 
 WAIT UNTIL ALTITUDE > 70000.
 LOCK steering to PROGRADE.
 
+local bc is StageCalculator().
+local bt is bc:BurnTime(bdv).
 UNTIL ALT:PERIAPSIS > 70500 {
 	//start at 2/3, max at 1/2
 	if ETA:APOAPSIS > ETA:PERIAPSIS set thrustLevel to 1.
