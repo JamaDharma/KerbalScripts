@@ -4,6 +4,7 @@ parameter fnc, value.
 
 local apsisList is lexicon(
 	"ap", SetApoapsis@,
+	"pe", SetPeriapsis@,
 	"pa", SetPeriapsis@
 ).
 local timeList is lexicon(

@@ -95,6 +95,16 @@ function AtmDensity{
 	}
 }
 
+function MakeKerbinDragMultiplyerCalculator{
+	local getSpdK is MakeStatefulInterpolator(SpeedKT).
+	local getDensity is MakeStatefulInterpolator(KerbinAT).
+	return {
+		parameter cAlt.
+		parameter spd.
+
+		return getSpdK(spd)*getDensity(cAlt).
+	}.	
+}
 function MakeDragForceCalculator{
 	parameter dragT.
 	parameter dragK.

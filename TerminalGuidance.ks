@@ -1,6 +1,6 @@
 RUNONCEPATH("0:/lib/Debug").
 RUNONCEPATH("0:/lib/Defaults").
-RUNONCEPATH("0:/lib/Surface").
+RUNONCEPATH("0:/lib/Surface/Surface").
 RUNONCEPATH("0:/lib/Targeting").
 parameter margin is 10, minimalSpeed is 1.
 

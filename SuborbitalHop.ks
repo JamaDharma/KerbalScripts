@@ -1,6 +1,6 @@
 RUNONCEPATH("0:/lib/Debug").
 RUNONCEPATH("0:/lib/Targeting").
-RUNONCEPATH("0:/lib/SurfaceAt").
+RUNONCEPATH("0:/lib/Surface/SurfaceAt").
 RUNONCEPATH("0:/lib/Math/Rotations").
 RUNONCEPATH("0:/lib/Search/TragectoryImpactSearch").
 
@@ -52,6 +52,7 @@ function MakeSteeringControl{
 		NPrint("Estimated flight time",t).
 		return t.
 	}
+	//t^2=(x*sin a+g)^2+(x*cos a)^2, t is twr so g is 1
 	local function SteeringByGrav{
 		parameter posVec.
 		

@@ -1,5 +1,5 @@
 RUNONCEPATH("0:/lib/Debug").
-RUNONCEPATH("0:/lib/SurfaceAt").
+RUNONCEPATH("0:/lib/Surface/SurfaceAt").
 RUNONCEPATH("0:/lib/Search/TragectoryImpactSearch").
 RUNONCEPATH("0:/lib/Ship/Acceleration").
 
