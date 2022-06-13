@@ -39,7 +39,7 @@ function StageCalculator{
 	parameter pressure is 0.
 	local ispP is StageIsp(pressure).
 	local exV is constant:g0*ispP.
-	local accel is MAXTHRUST/MASS.
+	local accel is ship:AVAILABLETHRUSTAT(pressure)/MASS.
 	
 	function MassAfter{
 		parameter dV.
@@ -47,7 +47,7 @@ function StageCalculator{
 	}
 	
 	function BurnTime{
-		parameter dV.
+		parameter dV is StageDeltaV().
 		return exV/accel * (1 - constant:E^(-dV/exV)).
 	}
 	
@@ -56,6 +56,7 @@ function StageCalculator{
 	}
 	
 	return lexicon(
+		"Acceleration",accel,
 		"StageDeltaV",StageDeltaV@,
 		"MassAfter",MassAfter@,
 		"BurnTime", BurnTime@
