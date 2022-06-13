@@ -1,6 +1,6 @@
 RUNONCEPATH("0:/lib/Defaults").
 
-set landingSpeed to 1.
+parameter landingSpeed is 1.
 set touchdownAlt to 0.
 
 function InverseControl {
@@ -68,17 +68,19 @@ function SuicideBurnControl {
 }
 
 function TouchDownControl {
-	set thrustLevel to Gravity()*MASS/MAXTHRUST*(9-VERTICALSPEED/landingSpeed)/10.
+	local tk is (4-VERTICALSPEED/landingSpeed)/5.
+	set thrustLevel to Gravity()*MASS/MAXTHRUST*tk.
 }
 
 function SuicideBurn {
 	LOCK STEERING to SRFRETROGRADE.
-	UNTIL (RealAltitude() < 0) {
+	UNTIL (RealAltitude() < 3) {
 		SuicideBurnControl().
 		WAIT 0.
 	}
 	
-	UNTIL (SHIP:STATUS = "LANDED" or SHIP:STATUS = "SPLASHED") {
+	//UNTIL (SHIP:STATUS = "LANDED" or SHIP:STATUS = "SPLASHED") {
+	UNTIL false {
 		TouchDownControl().
 		WAIT 0.
 	}

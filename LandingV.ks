@@ -1,5 +1,5 @@
 RUNONCEPATH("0:/lib/Defaults").
-RUNONCEPATH("0:/lib/Landing").
+RUNONCEPATH("0:/lib/Landing/Landing").
 
 parameter landingSpeed is 1.
 
