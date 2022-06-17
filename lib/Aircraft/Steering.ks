@@ -1,10 +1,13 @@
 RUNONCEPATH("0:/lib/Debug").
 
 CLEARVECDRAWS().
+SET STEERINGMANAGER:ROLLCONTROLANGLERANGE TO 180.//roll as soon as possible
 
 function NewDirSteeringController {
     parameter aoa is 10.
-    parameter bearRoll is 20.
+    parameter bearRoll is 30.
+    parameter maxRoll is 45.
+    set maxRollK to maxRoll/90.
 
     local debugDraws is true.
 
@@ -38,7 +41,7 @@ function NewDirSteeringController {
         local goodV is ANGLEAXIS(MIN(VANG(vec,srfV),aoa), VCRS(srfV,vec))*srfV.
         local topV is (goodV-srfV):NORMALIZED.
         //what bearing delta warrants full roll
-        local upK is MAX(0, 1-bearingDelta/bearRoll).
+        local rollK is MIN(maxRollK, bearingDelta/bearRoll).
         
         if(debugDraws){
             set drawTarget:vec to dir:VECTOR*15.
@@ -46,7 +49,7 @@ function NewDirSteeringController {
             set drawSteer:vec to goodV*15.
         }
 
-        RETURN LOOKDIRUP(goodV, upV*upK+topV*(1-upK)).
+        RETURN LOOKDIRUP(goodV, upV*(1-rollK)+topV*rollK).
     }
 
     RETURN SmoothSteering@.
