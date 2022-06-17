@@ -23,8 +23,7 @@ local function SeaAltAtT{
 
 function TragectoryAltitudeTime{
 	parameter aboveSea is 0.
-	parameter altTime is time.
-	
+	parameter altTime is CHOOSE time IF ETA:PERIAPSIS<ETA:APOAPSIS ELSE time+ETA:APOAPSIS*2.
 	if ALTITUDE > aboveSea BSearch(
 			{return aboveSea-SeaAltAtT(altTime).},
 			MakeSearchComponent( 1, 0.1, 
