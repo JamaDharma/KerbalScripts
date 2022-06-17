@@ -1,6 +1,7 @@
+//lib for correction to fly over specific point?
 RUNONCEPATH("0:/lib/Debug").
 RUNONCEPATH("0:/lib/Targeting").
-RUNONCEPATH("0:/lib/SurfaceAt").
+RUNONCEPATH("0:/lib/Surface/SurfaceAt").
 RUNONCEPATH("0:/lib/Search/BinarySearch").
 RUNONCEPATH("0:/lib/Search/ManeuverSearch").
 

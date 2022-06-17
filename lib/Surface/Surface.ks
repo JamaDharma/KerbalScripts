@@ -117,7 +117,7 @@ function SurfaceRoll {
 	PARAMETER p1.
 	RETURN 90 -VANG(GetUpVec(p1),SurfaceRollVector(p1)).
 }
-
+//for rover
 FUNCTION SurfaceNormal {
 	PARAMETER rover, dir, sideOffset, gradeOffset.
 	LOCAL localBody IS rover:BODY.

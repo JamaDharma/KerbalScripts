@@ -1,4 +1,5 @@
-RUNONCEPATH("0:/lib/Surface").
+//big wheels phisics abuse
+RUNONCEPATH("0:/lib/Surface/Surface").
 
 parameter spd is 20.
 PRINT "Cruise speed: " + spd.
