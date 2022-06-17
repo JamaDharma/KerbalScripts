@@ -74,8 +74,7 @@ UNTIL ALT:APOAPSIS > apoap {
 }
 
 set thrustLevel to 0.
-UNLOCK steering.
-
+UNLOCK steering.//need coasting manager?
 
 local bdv is BurnForPeriapsis(71000).
 

@@ -1,5 +1,6 @@
 RUNONCEPATH("0:/lib/Debug").
 RUNONCEPATH("0:/lib/Targeting").
+RUNONCEPATH("0:/lib/Surface/Surface").
 RUNONCEPATH("0:/lib/Aircraft/Steering").
 
 local targetLock is false.
@@ -35,7 +36,7 @@ function Compas {
 
 function SetDefaults{
 	SetCompas(Compas()).
-	set pitchLock to 0.
+	set pitchLock to ROUND(GetPitch()*5)/5.
 	set rollLock to 0.
 	NPrint("Heading",compasLock).
 	NPrint("Pitch",pitchLock).
@@ -89,7 +90,8 @@ local dsc is NewDirSteeringController().
 LOCK STEERING TO dsc(HEADING(GetCompas(),pitchLock,rollLock)).
 
 UNTIL exit {
-	if targetLock AND selectedTarget:DISTANCE <  500 ToggleTargetLock().
+	if targetLock AND GlobeDistance(GEOPOSITION,selectedTarget) <  1000 
+		ToggleTargetLock().
 }
 
 SAS ON.
