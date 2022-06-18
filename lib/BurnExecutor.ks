@@ -15,6 +15,21 @@ function MakeThrustControl{
 		return currentThrust.
 	}.
 }
+
+function NewEncounterThrustControl {
+	parameter tgtBody,tgtPeriapsis.
+	local tc is MakeThrustControl(tgtPeriapsis,-1).
+	local function ThrustControl{
+		if ship:ORBIT:HASNEXTPATCH and ship:ORBIT:NEXTPATCH:BODY = tgtBody {
+			local currPer is ship:ORBIT:NEXTPATCH:PERIAPSIS.
+			if currPer < tgtPeriapsis return -1.	
+			return tc(currPer)+0.001.
+		}
+		return 1.
+	}
+	RETURN ThrustControl@.
+}
+
 function BurnControlBase{
 	parameter burn.
 	local bl is StageCalculator():BurnTime(burn:DELTAV:MAG).
