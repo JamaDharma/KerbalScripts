@@ -3,6 +3,7 @@ RUNONCEPATH("0:/lib/Search/GradientDescent").
 RUNONCEPATH("0:/lib/Search/OneStepMomentum").
 RUNONCEPATH("0:/lib/Search/OneStepOptimization").
 
+//Manuever all searcher
 function MakeMSearcher {
 	parameter metric, timeScale, mainTime.
 
@@ -32,7 +33,7 @@ function MakeMSearcher {
 		set branchNode to mainNode.
 		REMOVE NEXTNODE.
 		ADD mainNode.
-		wait 0.
+		WAIT 0.
 	}
 	
 	local minTimeStep is 0.1/timeScale.
@@ -43,30 +44,35 @@ function MakeMSearcher {
 			{	
 				parameter dT.
 				set branchTime to branchTime+dT*timeScale.
+				WAIT 0.
 			}
 		),MakeSearchComponent(
 			1, minTimeStep,
 			{
 				parameter dX.
 				set NEXTNODE:ETA to NEXTNODE:ETA+dX*timeScale.
+				WAIT 0.
 			}
 		),MakeSearchComponent(
 			1, minBurnStep,
 			{
 				parameter dX.
 				set NEXTNODE:PROGRADE to NEXTNODE:PROGRADE+dX.
+				WAIT 0.
 			}
 		),MakeSearchComponent(
 			1, minBurnStep,
 			{
 				parameter dX.
 				set NEXTNODE:RADIALOUT to NEXTNODE:RADIALOUT+dX.
+				WAIT 0.
 			}
 		),MakeSearchComponent(
 			1, minBurnStep,
 			{
 				parameter dX.
 				set NEXTNODE:NORMAL to NEXTNODE:NORMAL+dX.
+				WAIT 0.
 			}
 		)
 	).
@@ -80,6 +86,7 @@ function MakeMSearcher {
 			Branch@, Commit@, Revert@).
 		
 		OneStepMomentum(context).
+		//GradientDescent(context).
 	}
 	
 	local this is lexicon(
@@ -90,6 +97,7 @@ function MakeMSearcher {
 	return this.
 }
 
+//Gradient descent only burn magnitude searcher
 function MakeBurnSearcher {
 	parameter metric.
 
@@ -106,7 +114,7 @@ function MakeBurnSearcher {
 			mainNode:PROGRADE+myV[0]).
 		REMOVE NEXTNODE.
 		ADD branchNode.
-		wait 0.
+		WAIT 0.
 	}
 	function Commit{
 		set mainNode to branchNode.
@@ -115,7 +123,7 @@ function MakeBurnSearcher {
 		set branchNode to mainNode.
 		REMOVE NEXTNODE.
 		ADD mainNode.
-		wait 0.
+		WAIT 0.
 	}
 	
 	local minBurnStep is 0.01.
@@ -125,18 +133,21 @@ function MakeBurnSearcher {
 			{
 				parameter dX.
 				set NEXTNODE:PROGRADE to NEXTNODE:PROGRADE+dX.
+				WAIT 0.
 			}
 		),  MakeGDComponent(
 			minBurnStep,
 			{
 				parameter dX.
 				set NEXTNODE:RADIALOUT to NEXTNODE:RADIALOUT+dX.
+				WAIT 0.
 			}
 		),MakeGDComponent(
 			minBurnStep,
 			{
 				parameter dX.
 				set NEXTNODE:NORMAL to NEXTNODE:NORMAL+dX.
+				WAIT 0.
 			}
 		)
 	).
@@ -199,12 +210,14 @@ function MakeProgradeSearcher {
 			{
 				parameter dT.
 				set branchTime to branchTime+dT*timeScale.
+				wait 0.
 			}
 		), MakeGDComponent(
 			minBurnStep,
 			{
 				parameter dX.
 				set NEXTNODE:PROGRADE to NEXTNODE:PROGRADE+dX.
+				wait 0.
 			}
 		)
 	).

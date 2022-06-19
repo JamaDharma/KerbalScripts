@@ -1,8 +1,9 @@
-//lib for correction to fly over specific point?
+//lib for correction to fly over specific point while on polar orbit.
 RUNONCEPATH("0:/lib/Debug").
 RUNONCEPATH("0:/lib/Targeting").
 RUNONCEPATH("0:/lib/Surface/SurfaceAt").
 RUNONCEPATH("0:/lib/Search/BinarySearch").
+RUNONCEPATH("0:/lib/Search/GoldenSearch").
 RUNONCEPATH("0:/lib/Search/ManeuverSearch").
 
 local function LNGDiff{
@@ -13,22 +14,17 @@ local function LNGDiff{
 	return lDiff.
 }
 
-local function SeparationV{
+local function Separation{
 	parameter tT,tGP.
-	return GeopositionAt(ship, tT):POSITION - tGP:POSITION.
-}
-
-local function SeparationNrm{
-	parameter tT,tGP.
-	return NormalizeGP(GeopositionAt(ship, tT)) - NormalizeGP(tGP).
+	return GlobeDistance(GeopositionAt(ship, tT),tGP).
 }
 
 local function MinimalSeparationTime{
 	parameter minSepTime, tGP.
 
-	BSearch(
-		{ return SeparationNrm(minSepTime, tGP):SQRMAGNITUDE.},
-		MakeBSComponent( 1, 0.1, {parameter dT. set minSepTime to minSepTime + dT.})
+	GSearch(
+		{ return Separation(minSepTime,tGP).},
+		MakeSearchComponent( 1, 0.1, {parameter dT. set minSepTime to minSepTime + dT.})
 	).
 
 	return minSepTime.
@@ -58,26 +54,26 @@ function ToTime{
 	return FLOOR(tt:SECONDS/3600/6)+"d:"+tt:HOUR+"h:"+(t-time):MINUTE+"m:"+(t-time):SECOND+"s".
 }
 
-local function FindFlyOver{
+local function FindFlyOverPolar{
 	parameter timeOver, tGP.
 	
 	set timeOver to MinimalSeparationTime(timeOver, tGP).
 	
-	PRINT "Distance: " + SeparationV(timeOver,tGP):MAG.
+	PRINT "Distance: " + Separation(timeOver,tGP).
 	PRINT "Time: " + ToTime(timeOver).
 	
 	local search is MakeProgradeSearcher(Metric@,100,timeOver).
 	
 	function Metric{
-		return SeparationNrm(search:TrgTime(), tGP):SQRMAGNITUDE+ABS(NEXTNODE:PROGRADE).
+		return Separation(search:TrgTime(), tGP)+ABS(NEXTNODE:PROGRADE).
 	}
 	search:GO(0.1).
 	
-	PRINT "Distance: " + SeparationV(search:TrgTime(),tGP):MAG.
+	PRINT "Distance: " + Separation(search:TrgTime(),tGP).
 	PRINT "Time: " + ToTime(search:TrgTime()).
 }
 
-function FlyOver{
+function FlyOverPolar{
 	local tGP is GetTargetGeo().
 	local oP is ship:OBT:PERIOD.
 	local orbitStep is BODY:ROTATIONPERIOD/2.
@@ -87,6 +83,37 @@ function FlyOver{
 	ADD NODE(burnT:SECONDS,0,0,0).
 	WAIT 0.
 	
-	FindFlyOver(tT,tGP).
+	FindFlyOverPolar(tT,tGP).
+}
+
+local function FindFlyOverM{
+	parameter timeOver, tGP.
+	
+	set timeOver to MinimalSeparationTime(timeOver, tGP).
+	
+	PRINT "Distance: " + Separation(timeOver,tGP).
+	PRINT "Time: " + ToTime(timeOver).
+	
+	local search is MakeMSearcher(Metric@,100,timeOver).
+	
+	function Metric{
+		return Separation(search:TrgTime(), tGP)+ABS(NEXTNODE:PROGRADE).
+	}
+	search:GO(0.1).
+	
+	PRINT "Distance: " + Separation(search:TrgTime(),tGP).
+	PRINT "Time: " + ToTime(search:TrgTime()).
+}
+//Searches for fly over target by adjusting naneuver  
+function FlyOverM{
+	local tGP is GetTargetGeo().
+	local oP is ship:OBT:PERIOD.
+	parameter tOver is NEXTNODE:ETA+oP/4.
+
+	local tT is MinimalSeparationTime(time+tOver, tGP).
+	PRINT (tT-time):seconds/60.
+	WAIT 0.
+	
+	FindFlyOverM(tT,tGP).
 }
 
