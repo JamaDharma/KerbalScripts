@@ -3,13 +3,21 @@ RUNONCEPATH("0:/lib/Debug").
 CLEARVECDRAWS().
 SET STEERINGMANAGER:ROLLCONTROLANGLERANGE TO 180.//roll as soon as possible
 
-function NewDirSteeringController {
+function NewDirSteeringController{
+    parameter aoa is 10, bearRoll is 30, maxRoll is 45.
+
+    local vsc is NewVecSteeringController(aoa, bearRoll, maxRoll).
+
+    RETURN { parameter dir. RETURN vsc(dir:VECTOR). }.
+}
+function NewVecSteeringController {
     parameter aoa is 10.
     parameter bearRoll is 30.
     parameter maxRoll is 45.
+    parameter sign is 1.
     set maxRollK to maxRoll/90.
 
-    local debugDraws is true.
+    local debugDraws is false.
 
     local drawTarget to VECDRAW(
         V(0,0,0),V(0,0,0),
@@ -26,15 +34,15 @@ function NewDirSteeringController {
         GREEN,"",0.5,debugDraws).
 
     function SmoothSteering {
-        parameter dir.
+        parameter inputVec.
 
-        local vec is dir:VECTOR. 
+        local vec is inputVec. 
         local upV is UP:VECTOR.
         local srfV is SRFPROGRADE:VECTOR.
 
         local bearingDelta is VANG(VXCL(upV,srfV),VXCL(upV,vec)).
         if bearingDelta < 0.25 
-            RETURN dir.
+            RETURN inputVec.
         if bearingDelta > 140
             set vec to (srfV+vec):NORMALIZED.
 
@@ -44,12 +52,12 @@ function NewDirSteeringController {
         local rollK is MIN(maxRollK, bearingDelta/bearRoll).
         
         if(debugDraws){
-            set drawTarget:vec to dir:VECTOR*15.
+            set drawTarget:vec to inputVec*15.
             set adjTarget:vec to vec*15.
             set drawSteer:vec to goodV*15.
         }
 
-        RETURN LOOKDIRUP(goodV, upV*(1-rollK)+topV*rollK).
+        RETURN LOOKDIRUP(sign*goodV, upV*(1-rollK)+topV*rollK).
     }
 
     RETURN SmoothSteering@.
