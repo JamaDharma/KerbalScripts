@@ -1,4 +1,5 @@
 RUNONCEPATH("0:/lib/Debug").
+RUNONCEPATH("0:/lib/DebugVector").
 RUNONCEPATH("0:/lib/Surface/Surface").
 RUNONCEPATH("0:/lib/Surface/KerbinPoints").
 RUNONCEPATH("0:/lib/Aircraft/Steering").
@@ -29,7 +30,7 @@ local function GetEntryCircleCenterPosition {
     RETURN BODY:GEOPOSITIONOF(ecCenterPos).
 }
 
-local function GetCircleRotationVector {
+local function GetCircleRotationVector {//reversed
     local entryVec is stripStart:POSITION-entryGate:POSITION.
     local radialVec is ecCenter:POSITION-entryGate:POSITION.
     RETURN VCRS(radialVec,entryVec).
@@ -43,17 +44,6 @@ local function GetTangentVector {
 
 local function GetEntryNormal {
     RETURN VCRS(UP:VECTOR,stripStart:POSITION-entryGate:POSITION):NORMALIZED.
-}
-
-local draws is LIST().
-local function MarkSpot {
-    parameter spot.
-    parameter color.
-    draws:ADD(VECDRAW(
-        {RETURN spot:POSITION.},
-        {RETURN GetUpVec(spot)*10000.},
-        color,"",2,true)
-    ).
 }
 
 SAS OFF.
@@ -86,35 +76,45 @@ CLEARSCREEN.
 
 //flying to enter circle on tangent
 local steerLock is HEADING(stripStart:HEADING,0).
-local dsc is NewDirSteeringController(aoa,5).
+local dsc is NewDirSteeringController(aoa,5,60).
 LOCK STEERING TO dsc(steerLock).
 local decayTime is 5.
-UNTIL OnCircleTime()<decayTime {
+UNTIL OnCircleTime()<1 {
     set steerLock to LOOKDIRUP(GetTangentVector(),UP:VECTOR).
     PRINT " Tangent " AT(0,0).
     WAIT 0.
 }
 
 //flying in circle till gate
+local corrSign is -1.
+if UP:VECTOR*GetCircleRotationVector() <  0 
+    set corrSign to 1.
+local pidK is 1/100.
+local circlePID is PIDLOOP(pidK, 0.1*pidK, pidK, -aoa, aoa).
+set circlePID:SETPOINT to ecRadius.
 local function GetOnCircleVector {
-    local correction is (OnCircleTime()/decayTime-1)*aoa.
-    local horFacing is VXCL(UP:VECTOR,FACING:VECTOR):NORMALIZED.
-    local corrAxis is VCRS(horFacing,ecCenter:POSITION).
-    local angledVec is ANGLEAXIS(MAX(-aoa,MIN(aoa,correction))-90+aoa,corrAxis)*ecCenter:POSITION.
+    local dist is GlobeDistance(GEOPOSITION,ecCenter).
+    local correction is circlePID:UPDATE(TIME:SECONDS,dist).
+    local angledVec is ANGLEAXIS(aoa/2-correction-90,corrSign*UP:VECTOR)*ecCenter:POSITION.
     RETURN VXCL(UP:VECTOR,angledVec).
 }
-UNTIL false {
+UNTIL GlobeDistance(GEOPOSITION,entryGate)<AIRSPEED*5 {
     set steerLock to LOOKDIRUP(GetOnCircleVector(),UP:VECTOR).
+    OnCircleTime().
     PRINT " Circle    " AT(0,0).
     WAIT 0.
 }
 
+local entryPID is PIDLOOP(pidK, 0, pidK, -aoa, aoa).
+UNTIL GlobeDistance(GEOPOSITION,stripStart)<1000 {
+    local stripSteer is HEADING(stripStart:HEADING,0):VECTOR.
 
-local exscessAoA is aoa*2.
-set dsc to NewDirSteeringController(exscessAoA).
-UNTIL GlobeDistance(GEOPOSITION,stripStart)<100 {
-    set steerLock to LOOKDIRUP(GetOnCircleVector(),UP:VECTOR).
-    local dst is GlobeDistance(GEOPOSITION,stripStart).
-    PRINT "Distance: "+dst+" ETA: "+dst/AIRSPEED AT(4,0).
+    local dist is stripStart:POSITION*GetEntryNormal().
+    local correction is -entryPID:UPDATE(TIME:SECONDS,dist).
+    PRINT "Distance: "+ROUND(dist)+"                   " AT(0,1).
+    local angledVec is ANGLEAXIS(correction,UP:VECTOR)*stripSteer.
+
+    set steerLock to LOOKDIRUP(angledVec,UP:VECTOR).
+    PRINT " Approach    " AT(0,0).
     WAIT 0.
 }
