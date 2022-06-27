@@ -22,30 +22,30 @@ function NewChuteSolver {
 	local velK is accelRoot*v0.
 
 	//velocity at t
-	function Velocity {
+	function VelocityAtT {
 		parameter t.
 		return velK*TAN(timeK*t-stoppingACos).
 	}
 
 	//distance at t
-	function Distance {
+	function DistanceAtT {
 		parameter t.
 		return v0^2/g*(stoppingK - LN(-COS(stoppingACos-timeK*t))).
 	}
 
 	function TimeOfV {
-		parameter v.
-		set v to -ABS(v).//always negative
+		parameter vel.
+		set vel to -ABS(vel).//always negative
 		//local num is ARCTAN(v/velK)+stoppingACos.
 		//NPrintMany("num",num,"den",timeK).
 		//hack:why -180?
-		RETURN (ARCTAN(v/velK)+stoppingACos-180)/timeK.
+		RETURN (ARCTAN(vel/velK)+stoppingACos-180)/timeK.
 	}
 
 	return lexicon(
 		"V0", v0,
 		"TimeOfV", TimeOfV@,
-		"Velocity", Velocity@,
-		"Distance", Distance@
+		"Velocity", VelocityAtT@,
+		"Distance", DistanceAtT@
 	).
 }
