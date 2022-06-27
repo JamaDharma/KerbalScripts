@@ -26,7 +26,7 @@ local function ToggleTargetLock{
 
 local function SetCompas{
 	parameter cmp.
-	if targetLock { PRINT "Compass locked -h eading not changed!". return. }
+	if targetLock { PRINT "Compass locked - heading not changed!". return. }
 	set compasLock to cmp.
 }
 
@@ -90,7 +90,7 @@ local dsc is NewDirSteeringController().
 LOCK STEERING TO dsc(HEADING(GetCompas(),pitchLock,rollLock)).
 
 UNTIL exit {
-	if targetLock AND GlobeDistance(GEOPOSITION,selectedTarget) <  1000 
+	if targetLock AND GlobeDistance(GEOPOSITION,selectedTarget) <  GROUNDSPEED*5  
 		ToggleTargetLock().
 }
 
