@@ -17,6 +17,10 @@ function NewTerminalVelocityLandingControl {
     local maxBurnTime is stCalc:BurnTime().
     local accel is stCalc:Acceleration.
 
+    local frameDelay is 2.
+
+    local frameDV is -(accel-landingGravity)*frameDelay/50.
+
     //current runmode/state
     local mode is UpdateMode@.
 
@@ -46,7 +50,7 @@ function NewTerminalVelocityLandingControl {
             set burnHeight to tSolver:Distance(burnTime).
         }
         //3 frame latency?
-        set burnHeight to -(burnHeight+VERTICALSPEED/25).
+        set burnHeight to -(burnHeight+VERTICALSPEED*frameDelay/50).
 
         NPrint("Burn starts at height", burnHeight).
         NPrintMany("alt diff",ALT:radar-bBox:bottomaltradar).
@@ -71,8 +75,8 @@ function NewTerminalVelocityLandingControl {
     }
 
     function BurnMode {
-        PRINT VERTICALSPEED.
-        if -VERTICALSPEED <= landingSpeed {
+        PRINT VERTICALSPEED + " " + bBox:bottomaltradar.
+        if frameDV-VERTICALSPEED <= landingSpeed {
             set mode to TouchMode@.
             LOCK STEERING to UP.
         }
