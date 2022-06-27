@@ -35,4 +35,9 @@ until ALTITUDE > tgtAlt {
 	WAIT 0.
 }
 
+WAIT UNTIL verticalSpeed > tgtVel.
+
+SAS ON.
 STAGE.
+
+WAIT 0.
