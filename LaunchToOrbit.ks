@@ -1,10 +1,9 @@
 RUNONCEPATH("0:/lib/Debug").
 //warps and launches to specific orbit
-
 parameter incl is TARGET:OBT:INCLINATION.
 parameter ascLng is TARGET:OBT:LONGITUDEOFASCENDINGNODE.
 local dscLng is ascLng-180.
-
+parameter gt45 is 5.
 
 NPrintMany("ascLng",ascLng,"dscLng",dscLng,"incl",incl).
 
@@ -29,9 +28,11 @@ local lngETA is lngDelta/360*BODY:ROTATIONPERIOD.
 
 NPrintMany("currLng",currLng,"lngDelta",lngDelta,"lngETA",lngETA/60).
 
-WARPTO(time:SECONDS+lngETA).
+WARPTO(TIME:SECONDS+lngETA-60).
+WAIT UNTIL SHIP:UNPACKED.
+NPrint("Current LAN is ",VANG(UP:VECTOR,SOLARPRIMEVECTOR)).
 
-run GravityTurn(7,75,inclSign*incl,"stage1").
+run GravityTurn(gt45,75,inclSign*incl).
 
 
 
