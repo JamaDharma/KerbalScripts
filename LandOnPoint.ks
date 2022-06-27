@@ -43,10 +43,8 @@ PrintInfo().
 
 WARPTO(burnStartT:SECONDS - 60).
 
-SAS ON.
 WAIT 0.5.
-set SASMODE to "RETROGRADE".
-set NAVMODE to "SURFACE".
+LOCK STEERING TO SRFRETROGRADE.
 
 WAIT UNTIL burnStartT < time+10.
 NPrint("Seconds to burn", (burnStartT-time):SECONDS,0).
@@ -59,12 +57,10 @@ NPrint("DistCalk",tgtDistCalcMaker(endT,tgt)(ship:POSITION)).
 NPrint("AltDiff",info["SS"]["P"]:Z-ALTITUDE).
 NPrint("SpdDiff",info["SS"]["V"]:MAG-velocity:ORBIT:MAG).
 
-//SET SHIP:CONTROL:PILOTMAINTHROTTLE to 1.
-SAS OFF.
 LOCK STEERING TO RETROGRADE.
 
-WAIT UNTIL tgt:DISTANCE < 500.
-//WAIT UNTIL AIRSPEED < 10.
+//WAIT UNTIL tgt:DISTANCE < 500.
+WAIT UNTIL GROUNDSPEED < 5.
 local TerminalControl is MakeTerminalControl(tgt).
 local res is TerminalControl().
 
